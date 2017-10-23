@@ -1,0 +1,35 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "taskName": "hello world",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "main.cpp",
+                "-I\"D:/Code/C++/lib/SFML-2.4.2/include\"",
+                "-L\"D:/Code/C++/lib/SFML-2.4.2/lib\"",
+                "-lsfml-graphics",
+                "-lsfml-window",
+                "-lsfml-system",
+                "-std=c++17", "-g",
+                "-o", "testmain"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "taskName": "setup bin",
+            "type": "shell",
+            "command": "mkdir",
+            "args": [
+                "bin"
+            ]
+
+        }
+    ]
+}
