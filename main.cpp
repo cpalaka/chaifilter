@@ -40,6 +40,8 @@ int main(int argc, char* argv[]) {
         line[1] = sf::Vertex(sf::Vector2f(x2,y2), chosen);
         texA.draw(line);
 
+        //implement line drawing alogo
+
         std::cout<< "("<<x1<<","<<y1<<")\n";
         std::cout<< "("<<x2<<","<<y2<<")\n";
         sf::Rect<int> area((x1<x2?x1:x2),(y1<y2?y2:y1),(x1<x2?x2-x1:x1-x2),(y1<y2?y2-y1:y1-y2));
@@ -54,11 +56,14 @@ int main(int argc, char* argv[]) {
         if( picAdiff < picBdiff) {
             //copy texA to texB
             std::cout<<"It better be this.\n";
+            texB = texA;
         } else {
             //copy texB to texA
             std::cout<<"Time for some debugging.\n";
         }
     }
+
+    texA.display();
     
     sf::RenderWindow window(sf::VideoMode(img_size.x, img_size.y), "SFML works!");
     while (window.isOpen()) 
