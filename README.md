@@ -20,8 +20,8 @@ Only requirements are SFML2.4 and the MingW C++ compiler on Windows.
 I didn't want to use an IDE like the regular Visual Studio 2017 for this so I chose instead to run it entirely in Visual Studio Code.
 To get yours working the same way, follow these settings -
 
-* In `**c_cpp_properties.json**`, depending on your platform ("name"), change the `includePath` and `browse.path` json lists to include paths to both your C++ compiler and SFML headers
-* Update `**tasks.json**` with your build command. For example, mine is:
+* In **`c_cpp_properties.json`**, depending on your platform ("name"), change the `includePath` and `browse.path` json lists to include paths to both your C++ compiler and SFML headers
+* Update **`tasks.json`** with your build command. For example, mine is:
 
 ` g++ main.cpp -I"D:/Code/C++/lib/SFML-2.4.2/include" -L"D:/Code/C++/lib/SFML-2.4.2/lib" -lsfml-graphics -lsfml-window -lsfml-system -std=c++17 -g -o testmain`
 
