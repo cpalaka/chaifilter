@@ -4,23 +4,27 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "taskName": "hello world",
+            "taskName": "chanfilter",
             "type": "shell",
             "command": "g++",
             "args": [
                 "main.cpp",
+                "PixelArray.cpp",
                 "-I\"D:/Code/C++/lib/SFML-2.4.2/include\"",
                 "-L\"D:/Code/C++/lib/SFML-2.4.2/lib\"",
                 "-lsfml-graphics",
                 "-lsfml-window",
                 "-lsfml-system",
-                "-std=c++17", "-g",
-                "-o", "testmain"
+                "-std=c++17",
+                "-g",
+                "-o",
+                "chanfilter"
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "problemMatcher": []
         },
         {
             "taskName": "setup bin",
@@ -29,7 +33,6 @@
             "args": [
                 "bin"
             ]
-
         }
     ]
 }

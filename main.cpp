@@ -1,71 +1,65 @@
+//TODO: profile entire code and see what is slowing things down so much
+#include "PixelArray.h"
 
-#include <SFML/Graphics.hpp>
-#include <SFML/System.hpp>
-#include <SFML/Window.hpp>
-#include <SFML/Graphics/Color.hpp>
+#define DEBUG 0
+#define VISUAL 1 //set this to draw the algo's progress to the window (a lot slower)
+#define VIEWCTR 0 //set this to view the line counter on the console (a little slower)
+#define ITERATIONS 5000
 
-#include <iostream>
-#include <cstdlib>
-#include <vector>
-#include <algorithm>
-#include <cmath>
+std::vector<sf::Color> getUniqueColorsFromImage(const sf::Image &image);
+inline float euclideanDistance(sf::Color c1, sf::Color c2);
+inline float euclideanDistance(sf::Vector2u p1, sf::Vector2u p2);
+void algo_loop(sf::Image &img, PixelArray &pixelArray, std::vector<sf::Color> &uniqueColors);
 
-//const int windowX = 500, windowY = 500; 
-std::vector<sf::Color> getUniqueColorsFromImage(sf::Image image, unsigned int &xdim, unsigned int &ydim);
-float getDiff(sf::Image a, sf::Image b, sf::Rect<int> area);
-float euclideanDistance(int r1, int g1, int b1, int a1, int r2, int g2, int b2, int a2);
+//TODO: implement more distance functions
+//TODO: implement color segmenting <-- urgent
+
+distance_func PixelArray::dfn = euclideanDistance;
 
 int main(int argc, char* argv[]) {
     srand(time(0));
-    
-    sf::RenderTexture texA, texB;
-    sf::Vector2u img_size;
+
     sf::Image pic;
- 
     pic.loadFromFile("pic.jpg");
+    sf::Vector2u img_resolution = pic.getSize();
+    std::cout<<"Image size: "<<img_resolution.x<<" x "<<img_resolution.y<<"\n";
+    std::cout<<"Total number of pixels = "<<img_resolution.x*img_resolution.y<<"\n";
     
-    std::vector<sf::Color> vec = getUniqueColorsFromImage(pic, img_size.x, img_size.y);
+    std::vector<sf::Color> uniqueColors(getUniqueColorsFromImage(pic));
+    //std::sort(uniqueColors.begin(), uniqueColors.end());
 
-    texA.create(img_size.x, img_size.y);
-    texB.create(img_size.x, img_size.y);
-
-    while(1) {
-        sf::VertexArray line(sf::Lines, 2);
-
-        sf::Color chosen = vec[rand()%vec.size()];
-        int x1 = rand()%img_size.x, y1 = rand()%img_size.y;
-        int x2 = rand()%img_size.x, y2 = rand()%img_size.y;
-
-        line[0] = sf::Vertex(sf::Vector2f(x1,y1), chosen);
-        line[1] = sf::Vertex(sf::Vector2f(x2,y2), chosen);
-        texA.draw(line);
-
-        //implement line drawing alogo
-
-        std::cout<< "("<<x1<<","<<y1<<")\n";
-        std::cout<< "("<<x2<<","<<y2<<")\n";
-        sf::Rect<int> area((x1<x2?x1:x2),(y1<y2?y2:y1),(x1<x2?x2-x1:x1-x2),(y1<y2?y2-y1:y1-y2));
-
-        std::cout<<"top: "<<area.top<<", left:"<<area.left<<", width:"<<area.width<<",height:"<<area.height<<std::endl;
-
-        float picAdiff = getDiff(pic, texA.getTexture().copyToImage(), area);
-        
-        float picBdiff = getDiff(pic, texB.getTexture().copyToImage(), area);
-        std::cout<<picAdiff<<" "<<picBdiff<<std::endl;
-
-        if( picAdiff < picBdiff) {
-            //copy texA to texB
-            std::cout<<"It better be this.\n";
-            texB = texA;
-        } else {
-            //copy texB to texA
-            std::cout<<"Time for some debugging.\n";
-        }
+    std::cout<<"Number of unique colors in the picture: "<<uniqueColors.size()<<"\n";
+/*
+    std::cout<<"R G B A\n";
+    for(const auto& col: uniqueColors) {
+        std::cout<<(int)col.r<<" "<<(int)col.g<<" "<<(int)col.b<<" "<<(int)col.a<<"\n";
     }
+*/
+    sf::Texture texture;
+    texture.create(img_resolution.x, img_resolution.y);
 
-    texA.display();
+    sf::Sprite sprite;
+    sprite.setTexture(texture);
     
-    sf::RenderWindow window(sf::VideoMode(img_size.x, img_size.y), "SFML works!");
+    PixelArray pixelArray(img_resolution, sf::Color::White);
+
+    //debugging clusterfuck coming through
+#if !VISUAL
+    int counter = 0;
+    while(counter <= ITERATIONS) {
+    #if VIEWCTR
+        if ( counter% 30 == 0) system("cls");
+    #endif
+        algo_loop(pic, pixelArray, uniqueColors);
+        counter++;
+    #if VIEWCTR
+        std::cout<<counter<<"\n";
+    #endif
+    }
+#endif
+
+
+    sf::RenderWindow window(sf::VideoMode(img_resolution.x, img_resolution.y), "ChanFilter");
     while (window.isOpen()) 
     {
         sf::Event event;
@@ -73,50 +67,96 @@ int main(int argc, char* argv[]) {
         {
             if (event.type == sf::Event::Closed)
                 window.close();
-
         }
         
-        window.clear();
-        window.draw(sf::Sprite(texA.getTexture()));
+        window.clear(sf::Color::Black);
+#if VISUAL
+        algo_loop(pic, pixelArray, uniqueColors);
+#endif
+        texture.update(pixelArray.getByteArray());
+        window.draw(sprite);
         window.display();
     }
-
-    int n;
-    std::cin>>n;
+    //std::cout<<skipped<<std::endl;
     return 0;
 }
 
-std::vector<sf::Color> getUniqueColorsFromImage(sf::Image image, unsigned int &xdim, unsigned int &ydim) {
-    std::vector<sf::Color > colorvec;  
+void algo_loop(sf::Image& img, PixelArray& pixelArray, std::vector<sf::Color>& uniqueColors) {
+#if DEBUG
+    //custom lines
+    sf::Color chosen = sf::Color::Blue;
+    int x1 = 40, y1 = 100;
+    int x2 = 550, y2 = 322;
+#endif
+    //static int skipped = 0;
+    //randomized lines
+    sf::Vector2u img_resolution = img.getSize();
 
-    xdim = image.getSize().x;
-    ydim = image.getSize().y;
+    sf::Color chosen = uniqueColors[rand()%uniqueColors.size()];
+    int x1, x2, y1, y2;
 
-    const sf::Uint8* pixels = image.getPixelsPtr();
-    for(int i = 0; i < (image.getSize().x * image.getSize().y)*4; i+=4) {
-        sf::Color col(pixels[i], pixels[i+1], pixels[i+2], pixels[i+3]);
-        colorvec.push_back(col);
-    }
-
-    auto del_repeats = std::unique(colorvec.begin(), colorvec.end(), [](auto a, auto b){ return (a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a);});
-    return std::vector<sf::Color>(colorvec.begin(), del_repeats);
-}
-
-float getDiff(sf::Image a, sf::Image b, sf::Rect<int> area) {
-    float distance = 0;
+    do {
+        x1 = rand()%img_resolution.x; 
+        y1 = rand()%img_resolution.y;
+        x2 = rand()%img_resolution.x; 
+        y2 = rand()%img_resolution.y;
+        //std::cout<<"redo\n";
+    } while(euclideanDistance(sf::Vector2u(x1, y1), sf::Vector2u(x2, y2)) >= 50.0);
     
-    for(int i = area.left; i<(area.left+area.width); ++i) {
-        for(int j = area.top; j>=(area.top-area.height); --j) {
-            //std::cout<<i<<","<<j<<std::endl;
-            sf::Color col_A = a.getPixel(i, j);
-            sf::Color col_B = b.getPixel(i, j);
+    //save the lines' info (color and pixel locations) in an internal vector
+    pixelArray.prepareLine(x1,y1,x2,y2,chosen);
+    sf::Rect<int> area((x1<x2?x1:x2),(y1<y2?y2:y1),(x1<x2?x2-x1:x1-x2),(y1<y2?y2-y1:y1-y2));
+  
+    //NOTE: something is really wrong with my algo..
 
-            distance += euclideanDistance(col_A.r, col_A.g, col_A.b, col_A.a, col_B.r, col_B.g, col_B.b, col_B.a);
-        }
-    } 
-    return distance;
+    //float without = pixelArray.measureDistance_line(img, 0);
+    //float with = pixelArray.measureDistance_line(img, 1);
+
+    PixelArray temp(pixelArray);
+
+    float without = pixelArray.measureDistance_AABB(img, 0, area);
+    float with = pixelArray.measureDistance_AABB(img, 1, area);
+    
+    //if drawing the line reduces the overall distance measurement,
+    if(with >= without)  {
+        //pixelArray.drawPixsSet();
+        pixelArray = temp;
+    }
+    //else skipped++;
+#if DEBUG
+    //check distance values if we use AABB bounding box instead
+    sf::Rect<int> area((x1<x2?x1:x2),(y1<y2?y2:y1),(x1<x2?x2-x1:x1-x2),(y1<y2?y2-y1:y1-y2));
+    //std::cout<<"top: "<<area.top<<", left:"<<area.left<<", width:"<<area.width<<",height:"<<area.height<<std::endl;
+
+    long double _without = pixelArray.measureDistance_AABB(pic, 0, area);
+    long double _with = pixelArray.measureDistance_AABB(pic, 1, area);
+ 
+    std::cout<<"(all)with: "<<_with<<" (all)without: "<<_without<<std::endl;
+#endif
+    return;
 }
 
-float euclideanDistance(int r1, int g1, int b1, int a1, int r2, int g2, int b2, int a2) {
-     return sqrt(pow(r1-r2, 2) + pow(g1-g2, 2) + pow(b1-b2, 2) + pow(a1-a2, 2));
+std::vector<sf::Color> getUniqueColorsFromImage(const sf::Image &image) {
+    std::vector<sf::Color> colorvec;  
+
+    for(int i = 0; i < image.getSize().x; ++i) {
+        for(int j = 0; j < image.getSize().y; ++j) {
+            colorvec.push_back(image.getPixel(i, j));
+        }
+    }
+    std::cout<<"Before prune: "<<colorvec.size()<<"\n";
+    //NOTE: should i keep only unique colors or should i get all colors?
+    auto del_repeats = std::unique(colorvec.begin(), colorvec.end(), [](auto a, auto b){ return a == b;});
+    return std::vector<sf::Color>(colorvec.begin(), del_repeats);
+
+    //return colorvec;
+}
+
+inline float euclideanDistance(sf::Vector2u p1, sf::Vector2u p2) {
+    return sqrt(pow(p1.x-p2.x, 2) + pow(p1.y-p2.y, 2));
+}
+
+inline float euclideanDistance(sf::Color c1, sf::Color c2) {
+    //NOTE: lets try kicking out the alpha part - keep it strictly RGB
+    return sqrt(pow(c1.r-c2.r, 2) + pow(c1.g-c2.g, 2) + pow(c1.b-c2.b, 2));
 }
