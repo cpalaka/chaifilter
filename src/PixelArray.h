@@ -39,16 +39,18 @@ public:
     PixelArray(sf::Vector2u size, sf::Color color = sf::Color::White) : PixelArray(size.x, size.y, color){};
 
     PixelArray & operator =(const PixelArray& toCopy);
-    inline friend bool operator ==(const PixelArray &p1, const PixelArray &p2);
+    inline friend bool operator ==(const PixelArray &p1, const PixelArray &p2); 
     
     inline sf::Color getPixel(int x, int y) const {
         assert(x<xdim && y<ydim && x>=0 && y>=0);
-        return arr[xdim*(ydim-y-1) + x];
+       // return arr[xdim*(ydim-y-1) + x]; //origin starting at bottom left
+        return arr[y*xdim + x + 1];  ////origin at top left
     };
 
     inline void setPixel(int x, int y, sf::Color color) {
         assert(x<xdim && y<ydim && x>=0 && y>=0);
-        arr[xdim*(ydim-y-1) + x] = color;
+       // arr[xdim*(ydim-y-1) + x] = color; ////origin starting at bottom left
+       arr[y*xdim + x + 1] = color;//origin at top left
     };
 
     inline sf::Uint8* getByteArray() const {
@@ -69,26 +71,25 @@ public:
 
     void prepareLine(int x1, int y1, int x2, int y2, sf::Color color);
     
-    long double measureDistance_AABB(sf::Image& img, int id, sf::Rect<int> area);
-    float measureDistance_line(sf::Image& img, int id);//id = 1 for with line, id = 0 for without
+    long double measureInverseDistance_AABB(sf::Image& img, int id, sf::Rect<int> area);
+    float measureInverseDistance_perPixel(sf::Image& img, int id);//id = 1 for with line, id = 0 for without
     
     inline void drawLine(bool flag = false) {
-        for(const auto& i: linePixels) {
-            if(flag) prev_linePixels.push_back(pix(sf::Vector2u(i.loc.x, i.loc.y), getPixel(i.loc.x, i.loc.y)));
+        for(const auto& i: pixBuffer) {
+            if(flag) pixBufferTemp.push_back(pix(sf::Vector2u(i.loc.x, i.loc.y), getPixel(i.loc.x, i.loc.y)));
             setPixel(i.loc.x, i.loc.y, i.c);
         }
     }
-
     
-    //undo the previously drawn line, saved in prev_linePixels
+    //undo the previously drawn line, saved in pixBufferTemp
     void undoLine() {
-        for(const auto& i: prev_linePixels) {
+        for(const auto& i: pixBufferTemp) {
             setPixel(i.loc.x, i.loc.y, i.c);
         }
     }
 
-    inline void clearLinePixels() { linePixels.clear();};
-    inline void clearPrevLinePixels() { prev_linePixels.clear();};
+    inline void clearLinePixels() { pixBuffer.clear();};
+    inline void clearPrevLinePixels() { pixBufferTemp.clear();};
 
     
 
@@ -96,7 +97,7 @@ public:
     //TODO: implement xiaolin wu algo
 
 private:
-    std::vector<pix> linePixels, prev_linePixels;
+    std::vector<pix> pixBuffer, pixBufferTemp;
     std::vector<sf::Color> arr;
     int xdim;
     int ydim;
