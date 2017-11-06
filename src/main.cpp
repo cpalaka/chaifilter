@@ -1,72 +1,75 @@
+/*
+ *      CHAN FILTER 
+ *          -a work by Chaitanya Palaka, inspired by 4chan's gentoomen
+ * 
+ */
+
 //TODO: profile entire code and see what is slowing things down so much
-#include "PixelArray.h"
-
-#define DEBUG 0
-#define VISUAL 1 //set this to draw the algo's progress to the window (a lot slower)
-#define VIEWCTR 0 //set this to view the line counter on the console (a little slower)
-#define ITERATIONS 2000000
-
-std::vector<sf::Color> getUniqueColorsFromImage(const sf::Image &image);
-inline float euclideanDistanceInverse(sf::Color c1, sf::Color c2);
-inline float euclideanDistanceInverse(sf::Vector2u p1, sf::Vector2u p2);
-void algo_loop(sf::Image &img, PixelArray &pixelArray, std::vector<sf::Color> &uniqueColors);
-float Q_rsqrt( float number );
-
 //TODO: implement more distance functions
+
 //TODO: implement color segmenting <-- urgent
-//TODO: fix the axes
+
 //NOTE: it could be worth multithreading this
 
-distance_func PixelArray::dfn = euclideanDistanceInverse;
+//TODO: think about how i can write about this stuff in a blog post(or multiple) for example, line algo - SFML - setup in vscode, etc
 
-int main(int argc, char* argv[]) {
-    srand(time(0));
+//TODO: add more shapes that can be drawn
 
-    sf::Image pic;
-    pic.loadFromFile("../images/pic.jpg");
-    sf::Vector2u img_resolution = pic.getSize();
-    std::cout<<"Image size: "<<img_resolution.x<<" x "<<img_resolution.y<<"\n";
-    std::cout<<"Total number of pixels = "<<img_resolution.x*img_resolution.y<<"\n";
-    
-    std::vector<sf::Color> uniqueColors(getUniqueColorsFromImage(pic));
-    //std::sort(uniqueColors.begin(), uniqueColors.end());
-
-    std::cout<<"Number of unique colors in the picture: "<<uniqueColors.size()<<"\n";
-/*
-    std::cout<<"R G B A\n";
-    for(const auto& col: uniqueColors) {
-        std::cout<<(int)col.r<<" "<<(int)col.g<<" "<<(int)col.b<<" "<<(int)col.a<<"\n";
-    }
+/*NOTE: when doing kmeans to segment colors, instead of getting only the k colors, add
+*       a proportional number of that color with respect to its size (cluster size)
 */
-    sf::Texture texture;
-    texture.create(img_resolution.x, img_resolution.y);
 
-    sf::Sprite sprite;
-    sprite.setTexture(texture);
-    
-    PixelArray pixelArray(img_resolution, sf::Color::White);
+//TODO: add feature where not only can you make the image out of shapes, but other images
 
+//TODO: lines, polygons, circles,etc
+#include "cfEngine.h"
+#include "PixelArray.h"
+#include "Util.h"
+
+void algo_loop(const sf::Image &img, PixelArray &pixelArray,const  std::vector<sf::Color> &chosenColors);
+
+void render_loop(const sf::Vector2u, const sf::Image &, PixelArray &, const std::vector<sf::Color> &, sf::Texture &, sf::Sprite &, unsigned int &counter);
+
+int main(const int argc, const char* argv[]) {
+    srand(time(0)); 
+
+    cfEngine cf;
+    cf.init(sf::Color::Blue);
+    if(!cf.configureEngineSettings(argc, argv)) {
+        exit(1);
+    }
+    cf.runAlgo();
+    //std::cout<<type<<std::endl;
+   /*
     //debugging clusterfuck coming through
 #if !VISUAL
-    int counter = 0;
+    counter = 0;
     while(counter <= ITERATIONS) {
     #if VIEWCTR
         if ( counter% 30 == 0) system("cls");
     #endif
-        if(counter%20000 == 0) std::cout<<counter<<"\n";
-        algo_loop(pic, pixelArray, uniqueColors);
+        if(counter%10000 == 0) std::cout<<counter<<"\n";
+        algo_loop(pic, pixelArray, chosenColors);
         counter++;
     #if VIEWCTR
         std::cout<<counter<<"\n";
     #endif
     }
 #endif
+    int n;
+    unsigned int loopCounter = 0;
+    render_loop(img_resolution, pic, pixelArray, chosenColors, texture, sprite, loopCounter);
+    std::cout<<"Total loops: "<<loopCounter<<"\n";
+    std::cin>>n;
+    */
+    return 0;
+}
 
-    int counter = 0;
+void render_loop(const sf::Vector2u img_resolution, const sf::Image & pic, PixelArray &pixelArray, const std::vector<sf::Color>& chosenColors, sf::Texture &texture, sf::Sprite &sprite, unsigned int &counter) {
+    //int counter = 0;
     sf::RenderWindow window(sf::VideoMode(img_resolution.x, img_resolution.y), "ChanFilter");
     while (window.isOpen()) 
     {
-        
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -76,65 +79,74 @@ int main(int argc, char* argv[]) {
         
         window.clear(sf::Color::Black);
 #if VISUAL
-        algo_loop(pic, pixelArray, uniqueColors);
+        //algo_loop(pic, pixelArray, chosenColors);
+        //our algo loop
         
-        if(!counter%100000) std::cout<<counter<<"\n";
+        //if(counter%100000 == 0) std::cout<<counter<<"\n";
 #endif
         texture.update(pixelArray.getByteArray());
         window.draw(sprite);
         window.display();
+
         counter++;
+        int n;
+#if DEBUG
+        if(counter == 2) std::cin>>n;
+#endif
     }
-    //std::cout<<skipped<<std::endl;
-    return 0;
 }
 
-void algo_loop(sf::Image& img, PixelArray& pixelArray, std::vector<sf::Color>& uniqueColors) {
-    //custom lines
-    /*sf::Color chosen = sf::Color::Blue;
-    int x1 = 40, y1 = 100;
-    int x2 = 550, y2 = 322;*/
-
-    //static int skipped = 0;
+void algo_loop(const sf::Image& img, PixelArray& pixelArray, const std::vector<sf::Color>& chosenColors) {
     //randomized lines
     sf::Vector2u img_resolution = img.getSize();
+    static int algo_loop_counter = 0;
+    int permittedLength = 1000;
 
-    sf::Color chosen = uniqueColors[rand()%uniqueColors.size()];
+    sf::Color chosen = chosenColors[rand()%chosenColors.size()];
     int x1, x2, y1, y2;
     float line_length;
+
+    //some stuipid shit
+    if(algo_loop_counter % 1000 == 0 && permittedLength >= 10) permittedLength-=algo_loop_counter;
+
+    //for lines - have 'max line length' setting,
+    //different shapes will have different settings'
+    //so maybe we need a settings class/struct?
     do {
         x1 = rand()%img_resolution.x; 
         y1 = rand()%img_resolution.y;
         x2 = rand()%img_resolution.x; 
         y2 = rand()%img_resolution.y;
-        //std::cout<<"redo\n";
-    } while((line_length = euclideanDistanceInverse(sf::Vector2u(x1, y1), sf::Vector2u(x2, y2))) <= 0.025);
+    } while((line_length = util::euclideanDistance(sf::Vector2u(x1, y1), sf::Vector2u(x2, y2))) >= 65);
 
     //save the lines' info (color and pixel locations) in an internal vector
     sf::Rect<int> area((x1<x2?x1:x2),(y1<y2?y2:y1),(x1<x2?x2-x1:x1-x2),(y1<y2?y2-y1:y1-y2));
-    pixelArray.prepareLine(x1,y1,x2,y2,chosen);
+    pixelArray.constructLine_naive(x1,y1,x2,y2,chosen);
     
-  
     //NOTE: line only below
 
-    float without = pixelArray.measureInverseDistance_perPixel(img, 0);
-    float with = pixelArray.measureInverseDistance_perPixel(img, 1);
+    float without = pixelArray.measureAverageDistance_perPixel(img, 0);
+    float with = pixelArray.measureAverageDistance_perPixel(img, 1);
 
-    //NOTE:AABB BELOW
+    //NOTE:AABB BELOW 
+    //TODO: FIX THIS
     //PixelArray temp(pixelArray);
 
-    //float without = pixelArray.measureInverseDistance_AABB(img, 0, area);
-    //float with = pixelArray.measureInverseDistance_AABB(img, 1, area);
+    //float without = pixelArray.measureAverageDistance_AABB(img, 0, area);
+    //float with = pixelArray.measureAverageDistance_AABB(img, 1, area);
     
+    //TODO: implement this in a better way, jesus
     //if drawing the line increases the overall distance measurement,
-    if(with > without)  {
+    if(with <= without)  {
         pixelArray.drawLine();
         //std::cout<<"not good\n";
         //pixelArray = temp;
         //pixelArray.undoLine();
         //assert(pixelArray == temp);
+        
+    } else {
+        //save one of the calculation so w
     }
-    //else skipped++;
 #if DEBUG
     int n;
     std::cout<<"("<<x1<<","<<y1<<")"<<"("<<x2<<","<<y2<<")\n";
@@ -143,57 +155,11 @@ void algo_loop(sf::Image& img, PixelArray& pixelArray, std::vector<sf::Color>& u
     //sf::Rect<int> area((x1<x2?x1:x2),(y1<y2?y2:y1),(x1<x2?x2-x1:x1-x2),(y1<y2?y2-y1:y1-y2));
     std::cout<<"top: "<<area.top<<", left:"<<area.left<<", width:"<<area.width<<",height:"<<area.height<<std::endl;
     std::cout<<(int)chosen.r<<" "<<(int)chosen.g<<" "<<(int)chosen.b<<" "<<(int)chosen.a<<"\n";
-    std::cin >> n;
-    //long double _without = pixelArray.measureInverseDistance_AABB(pic, 0, area);
-    //long double _with = pixelArray.measureInverseDistance_AABB(pic, 1, area);
- 
-    //std::cout<<"(all)with: "<<_with<<" (all)without: "<<_without<<std::endl;
+    std::cout<<"d with line: "<<with<<" d without line: "<<without<<std::endl;
 #endif
 
-    pixelArray.clearLinePixels();
-    pixelArray.clearPrevLinePixels();
+    pixelArray.clearPixelBuffers();
+    algo_loop_counter++;
     return;
 }
 
-std::vector<sf::Color> getUniqueColorsFromImage(const sf::Image &image) {
-    std::vector<sf::Color> colorvec;  
-
-    for(int i = 0; i < image.getSize().x; ++i) {
-        for(int j = 0; j < image.getSize().y; ++j) {
-            colorvec.push_back(image.getPixel(i, j));
-        }
-    }
-    
-    //NOTE: should i keep only unique colors or should i get all colors?
-    auto del_repeats = std::unique(colorvec.begin(), colorvec.end(), [](auto a, auto b){ return a == b;});
-    return std::vector<sf::Color>(colorvec.begin(), del_repeats);
-
-    //return colorvec;
-}
-
-inline float euclideanDistanceInverse(sf::Vector2u p1, sf::Vector2u p2) {
-    return Q_rsqrt(pow(p1.x-p2.x, 2) + pow(p1.y-p2.y, 2));
-}
-
-inline float euclideanDistanceInverse(sf::Color c1, sf::Color c2) {
-    //NOTE: lets try kicking out the alpha part - keep it strictly RGB
-    return Q_rsqrt(pow(c1.r-c2.r, 2) + pow(c1.g-c2.g, 2) + pow(c1.b-c2.b, 2));
-}
-
-//Yup, i did it.
-float Q_rsqrt( float number )
-{
-	long i;
-	float x2, y;
-	const float threehalfs = 1.5F;
-
-	x2 = number * 0.5F;
-	y  = number;
-	i  = * ( long * ) &y;                       // evil floating point bit level hacking
-	i  = 0x5f3759df - ( i >> 1 );               // what the fuck? 
-	y  = * ( float * ) &i;
-	y  = y * ( threehalfs - ( x2 * y * y ) );   // 1st iteration
-//	y  = y * ( threehalfs - ( x2 * y * y ) );   // 2nd iteration, this can be removed
-
-	return y;
-}

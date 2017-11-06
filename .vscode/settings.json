@@ -28,6 +28,8 @@
         "typeinfo": "cpp",
         "utility": "cpp",
         "cmath": "cpp",
-        "cstring": "cpp"
+        "cstring": "cpp",
+        "sstream": "cpp",
+        "cassert": "cpp"
     }
 }

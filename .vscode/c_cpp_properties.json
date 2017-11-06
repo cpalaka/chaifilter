@@ -52,7 +52,8 @@
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.15063.0/winrt",
                 "C:/MinGW/lib/gcc/mingw32/6.3.0/include/c++",
                 "${workspaceRoot}",
-                "D:/Code/C++/lib/SFML-2.4.2/include"
+                "D:/Code/C++/lib/SFML-2.4.2/include",
+                "D:/Code/C++/chanfilter/src"
             ],
             "defines": [
                 "_DEBUG",
@@ -68,7 +69,8 @@
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.15063.0/winrt",
                     "C:/MinGW/lib/gcc/mingw32/6.3.0/include/c++",
                     "D:/Code/C++/lib/SFML-2.4.2/include",
-                    "${workspaceRoot}"
+                    "${workspaceRoot}",
+                    "D:/Code/C++/chanfilter/src"
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
