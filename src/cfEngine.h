@@ -9,6 +9,7 @@
 #include <vector>
 #include <cstring>
 #include <cstdlib>
+#include <climits>
 
 #include "PixelArray.h"
 #include "Util.h"

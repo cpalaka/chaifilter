@@ -2,6 +2,12 @@
  *      CHAN FILTER 
  *          -a work by Chaitanya Palaka, inspired by 4chan's gentoomen
  * 
+ * 
+ * 
+ *  What it is:
+ *      - an image approximation algorithm using randomly drawn shapes/textures
+ * 
+ * 
  */
 
 //TODO: profile entire code and see what is slowing things down so much

@@ -1,6 +1,6 @@
 #include "cfEngine.h"
 cfEngine::cfEngine() :
-    num_of_iter(0),
+    num_of_iter(INT_MAX),
     distanceIsInversed(false),
     useAABBToCompare(false),
     max_line_length(50),
@@ -193,6 +193,7 @@ void cfEngine::algo_loop() {
             break;
     }
 
+    //compare + keep/drop newly drawn shape
     if(useAABBToCompare) {
         PixelArray temp(pixelArray);
 
@@ -227,12 +228,9 @@ void cfEngine::algo_loop() {
 
     //clear pixel buffers
     clearPixelBuffers();
-
 }
 
 void cfEngine::runAlgo() {
-    //if(num_of_iter == 0) <= do algo infinite
-    //runs algo loop or render loop
     if(visualMode) {
         render_loop();
     } else {
@@ -304,10 +302,12 @@ float cfEngine::measureAverageDistance_perPixel(int id) {
 }
 
 void cfEngine::render_loop() {
-    //int counter = 0;
+    int counter = 0;
+    bool printCount = false;
     sf::RenderWindow window(sf::VideoMode(resolution.x, resolution.y), "ChanFilter");
     while (window.isOpen()) 
     {
+        
         sf::Event event;
         while (window.pollEvent(event))
         {
@@ -316,12 +316,18 @@ void cfEngine::render_loop() {
         }
         
         window.clear(sf::Color::Black);
-        algo_loop();
+        if(counter < num_of_iter) { 
+            algo_loop();
+        } else {
+            if(!printCount) std::cout<<"Total loops: "<<counter<<"\n"; printCount = true;
+        }
+
         texture.update(pixelArray.getByteArray());
         window.draw(sprite);
         window.display();
-
+        counter++;
     }
+    std::cout<<"Total loops: "<<counter<<"\n";
 }
 
 void cfEngine::render_pixelArray() {
