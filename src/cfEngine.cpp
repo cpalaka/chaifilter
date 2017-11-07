@@ -39,38 +39,53 @@ bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
             if(argv[args][0] == '-') {
                 switch(argv[args][1]) {
                     case 't':
+                    {
                         toption = true;
                         switch(argv[args+1][0]) {
                             case 'L':
                             case 'l':
+                            {
                                 graphicType = LINE;
                                 max_line_length = atoi(argv[args+2]);
                                 args++;
                                 break;
+                            }
                             case 'C':
                             case 'c':
+                            {
                                 graphicType = CIRCLE;
                                 break;
+                            }
                             case 'P':
                             case 'p':
+                            {
                                 graphicType = POLYGON;
                                 break;
+                            }
                             case 'S':
                             case 's':
+                            {
                                 graphicType = SPRITE;
                                 break;
+                            }
                             default:
+                            {
                                 std::cout<<"Invalid GraphicType.\n";
                                 printUsage();
                                 return 0;
+                            }
                         }
                         args++;
                         break;
+                    }
                     case 'i':
+                    {
                         num_of_iter = atoi(argv[args+1]);
                         args++;
                         break;
+                    }
                     case 'd':
+                    {
                         distanceMetricSpecified = true;
                         if(argv[args+1][0] == 'e') {
                             dfn = util::euclideanDistanceSquared;
@@ -80,19 +95,27 @@ bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
                         } else
                         if(argv[args+1][0] == 'i') {
                             dfn == util::euclideanDistanceInverse;
+                            distanceIsInversed = true;
                         }
                         args++;
                         break;
+                    }
                     case 'A':
+                    {
                         useAABBToCompare = true;
                         break;
-                    case 'v'||'V':
+                    }
+                    case 'v':
+                    {
                         visualMode = true;
                         break;
+                    }
                     default:
+                    {
                         std::cout<<"Option doesn't exist. Yet.\n";
                         printUsage();
                         return 0;
+                    }
                 }
             } else { //only image filename
                 //TODO:check that filename ends with .jpg/.jpeg/.bmp/.png/.gif
@@ -129,21 +152,15 @@ std::vector<sf::Color> cfEngine::getUniqueColorsFromImage() {
     return std::vector<sf::Color>(colorvec.begin(), del_repeats);
 }
 
-void cfEngine::runAlgo() {
-    //if(num_of_iter == 0) <= do algo infinite
-    //runs algo loop or render loop
-    if(visualMode) {
-        render_loop();
-    } else {
-        //loop
+void cfEngine::algo_loop() {
+    //choose a random color from availableColors
+    sf::Color chosen = availableColors[rand()%availableColors.size()];
+    sf::Rect<int> area;
 
-        render_pixelArray();
-    }
-/*
+    //choose random shape and construct it on pixelArray
     switch(graphicType) {
         case LINE:
-              //choose a random color from availableColors
-            sf::Color chosen = availableColors[rand()%availableColors.size()];
+        {
             int x1, x2, y1, y2;
             do {
                 x1 = rand()%resolution.x; 
@@ -151,18 +168,83 @@ void cfEngine::runAlgo() {
                 x2 = rand()%resolution.x; 
                 y2 = rand()%resolution.y;
             } while(util::euclideanDistance(sf::Vector2u(x1, y1), sf::Vector2u(x2, y2)) >= max_line_length);
-            sf::Rect<int> area((x1<x2?x1:x2),(y1<y2?y2:y1),(x1<x2?x2-x1:x1-x2),(y1<y2?y2-y1:y1-y2));
+            
+            area = sf::Rect<int>((x1<x2?x1:x2),(y1<y2?y2:y1),(x1<x2?x2-x1:x1-x2),(y1<y2?y2-y1:y1-y2));
+            constructLine_naive(x1, y1, x2, y2, chosen);
             break;
+        }
         case CIRCLE:
+        {
+        
             break;
+        }
         case POLYGON:
-            break;
-        case SPRITE:
-            break;
-        default:
+        {
 
+            break;
+        }
+        case SPRITE:
+        {
+
+        
+            break;
+        }
+        default:
+            break;
     }
-*/
+
+    if(useAABBToCompare) {
+        PixelArray temp(pixelArray);
+
+        long double without = measureAverageDistance_AABB(0, area);
+        long double with = measureAverageDistance_AABB(1, area);
+
+        if(distanceIsInversed) {
+            if(with < without) {
+                undoGraphic();
+                assert(pixelArray == temp);
+            }
+        } else {
+            if(with > without) {
+                undoGraphic();
+                assert(pixelArray == temp);
+            }
+        }
+    } else {
+        float without = measureAverageDistance_perPixel(0);
+        float with = measureAverageDistance_perPixel(1);
+
+        if(distanceIsInversed) {
+            if(with > without) {
+                drawGraphic();
+            }
+        } else {
+            if(with < without) {
+                drawGraphic();
+            }
+        } 
+    }
+
+    //clear pixel buffers
+    clearPixelBuffers();
+
+}
+
+void cfEngine::runAlgo() {
+    //if(num_of_iter == 0) <= do algo infinite
+    //runs algo loop or render loop
+    if(visualMode) {
+        render_loop();
+    } else {
+        //loop
+        int count = 0;
+        while(count < num_of_iter) {
+            algo_loop();
+            count++;
+        }
+
+        render_pixelArray();
+    }
 }
 
 //setup affected-pixel vector (pixBuffer) so we can compare later
@@ -181,7 +263,7 @@ void cfEngine::constructLine_naive(int x1, int y1, int x2, int y2, sf::Color col
 
         for(float x = area.left+0.5; x < area.left+area.width; ++x) {
             int y = floor(m*(x-x1) + y1);
-            pixBuffer.push_back(struct util::pix(sf::Vector2u(floor(x),y), color));
+            pixBuffer.push_back(util::pix(sf::Vector2u(floor(x),y), color));
         }
     } else {
         if(y1 > y2) {
@@ -191,7 +273,7 @@ void cfEngine::constructLine_naive(int x1, int y1, int x2, int y2, sf::Color col
 
         for(float y = area.top - area.height; y < area.top; ++y) {
             int x = floor((y-y1)/m + x1);
-            pixBuffer.push_back(struct util::pix(sf::Vector2u(x,floor(y)), color));
+            pixBuffer.push_back(util::pix(sf::Vector2u(x,floor(y)), color));
         }
     }
 }
@@ -200,7 +282,7 @@ void cfEngine::constructLine_naive(int x1, int y1, int x2, int y2, sf::Color col
 long double cfEngine::measureAverageDistance_AABB(int id, sf::Rect<int> area) {
     long double distance = 0;
     std::vector<sf::Color> oldpix(pixelArray.getColorVector());
-    if(id) drawLine(true);
+    if(id) drawGraphic(true);
 
     //measure all pixels
     for(int i = area.left; i<(area.left+area.width); ++i) {
@@ -234,9 +316,7 @@ void cfEngine::render_loop() {
         }
         
         window.clear(sf::Color::Black);
-        //algo_loop(pic, pixelArray, chosenColors);
-        //our algo loop
-
+        algo_loop();
         texture.update(pixelArray.getByteArray());
         window.draw(sprite);
         window.display();

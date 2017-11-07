@@ -33,6 +33,7 @@ private:
     std::vector<sf::Color> getUniqueColorsFromImage();
     void printUsage();
     void render_loop();
+    void algo_loop();
     void render_pixelArray();
     //Line drawing algos
     void constructLine_naive(int x1, int y1, int x2, int y2, sf::Color color);
@@ -40,7 +41,7 @@ private:
     long double measureAverageDistance_AABB(int id, sf::Rect<int> area);
     float measureAverageDistance_perPixel(int id);//id = 1 for with line, id = 0 for without
     
-    inline void drawLine(bool flag = false) {
+    inline void drawGraphic(bool flag = false) {
         for(const auto& i: pixBuffer) {
             if(flag) pixBufferTemp.push_back(util::pix(sf::Vector2u(i.loc.x, i.loc.y), pixelArray.getPixel(i.loc.x, i.loc.y)));
             pixelArray.setPixel(i.loc.x, i.loc.y, i.c);
@@ -48,7 +49,7 @@ private:
     }
     
     //undo the previously drawn line, saved in pixBufferTemp
-    inline void undoLine() {
+    inline void undoGraphic() {
         for(const auto& i: pixBufferTemp) {
             pixelArray.setPixel(i.loc.x, i.loc.y, i.c);
         }
