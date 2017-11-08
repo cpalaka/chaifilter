@@ -7,9 +7,11 @@
 #include <cmath>
 #include <cassert>
 #include <vector>
+#include <unordered_map>
 #include <cstring>
 #include <cstdlib>
 #include <climits>
+#include <cfloat>
 
 #include "PixelArray.h"
 #include "Util.h"
@@ -30,6 +32,7 @@ public:
     void init(sf::Color initialFill = sf::Color::White);
     void runAlgo();
     bool configureEngineSettings(const int argc, const char* argv []);
+    
 private:
     std::vector<sf::Color> getUniqueColorsFromImage();
     void printUsage();
@@ -38,10 +41,16 @@ private:
     void render_pixelArray();
     //Line drawing algos
     void constructLine_naive(int x1, int y1, int x2, int y2, sf::Color color);
+    void constructLine_bresenham();
 
+    void showKmeansResult();
+    //AABB is a LOT slower
     long double measureAverageDistance_AABB(int id, sf::Rect<int> area);
     float measureAverageDistance_perPixel(int id);//id = 1 for with line, id = 0 for without
     
+    //run kmeans algo on availableColors and output to kmeansColors
+    void kmeans();
+
     inline void drawGraphic(bool flag = false) {
         for(const auto& i: pixBuffer) {
             if(flag) pixBufferTemp.push_back(util::pix(sf::Vector2u(i.loc.x, i.loc.y), pixelArray.getPixel(i.loc.x, i.loc.y)));
@@ -57,9 +66,7 @@ private:
     }
 
     inline void clearPixelBuffers() { pixBuffer.clear();pixBufferTemp.clear(); };
-    //TODO: implememt bresenhams algo
-    //TODO: implement xiaolin wu algo
-
+    
     //Member data
     PixelArray pixelArray;
     sf::Image inputpic;
@@ -84,6 +91,8 @@ private:
     bool distanceIsInversed;
     bool useAABBToCompare;
     bool visualMode;
+    bool useKmeans;
+    int num_clusters;//k
 };
 
 #endif //__CF__ENGINE_H__

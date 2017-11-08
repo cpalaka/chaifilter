@@ -5,7 +5,9 @@ cfEngine::cfEngine() :
     useAABBToCompare(false),
     max_line_length(50),
     dfn(NULL),
-    visualMode(false)
+    visualMode(false),
+    useKmeans(false),
+    num_clusters(4)
 {}
 
 void cfEngine::init(sf::Color initialFill) {
@@ -25,7 +27,7 @@ void cfEngine::init(sf::Color initialFill) {
 
 bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
     //Handle command line options
-    //filename -v(isual)/not -t line/circle/polygon/sprite number -i(terations) number(-1 for infinity) -d(istance) taxi/euclid/inverse(default euclid) -AABB(if not, then perpixel) 
+    //filename -v(isual)/not -t line/circle/polygon/sprite number -i(terations) number(-1 for infinity) -d(istance) taxi/euclid/inverse(default euclid) -AABB(if not, then perpixel) -num_clusters(do kmeans)
     bool toption = false;
     bool distanceMetricSpecified = false;
     if(argc <= 1) {
@@ -110,6 +112,13 @@ bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
                         visualMode = true;
                         break;
                     }
+                    case 'k':
+                    {
+                        useKmeans = true;
+                        num_clusters = atoi(argv[args+1]);
+                        args++;
+                        break;
+                    }
                     default:
                     {
                         std::cout<<"Option doesn't exist. Yet.\n";
@@ -125,7 +134,7 @@ bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
         }
     }
 
-    if(!toption) {
+    if(!toption && !useKmeans) {
         std::cout<<"You didn't set the GraphicType(-t) option. You can select either line/LINE, circle/CIRCLE, polygon/POLY, or sprite/SPR\n";
         printUsage();
         return 0;
@@ -154,7 +163,13 @@ std::vector<sf::Color> cfEngine::getUniqueColorsFromImage() {
 
 void cfEngine::algo_loop() {
     //choose a random color from availableColors
-    sf::Color chosen = availableColors[rand()%availableColors.size()];
+    sf::Color chosen;
+    if(useKmeans) {
+        chosen = kmeansColors[rand()%kmeansColors.size()];
+    } else {
+        chosen = availableColors[rand()%availableColors.size()];
+    }
+    
     sf::Rect<int> area;
 
     //choose random shape and construct it on pixelArray
@@ -216,6 +231,7 @@ void cfEngine::algo_loop() {
         float with = measureAverageDistance_perPixel(1);
 
         if(distanceIsInversed) {
+            std::cout<<"hmm";
             if(with > without) {
                 drawGraphic();
             }
@@ -231,6 +247,13 @@ void cfEngine::algo_loop() {
 }
 
 void cfEngine::runAlgo() {
+    //test
+    if(useKmeans) {
+        kmeans();
+        //std::cout<<"Kmeans done. Size of kmeansColors: "<<kmeansColors.size()<<"\n";
+        //showKmeansResult();
+    }
+
     if(visualMode) {
         render_loop();
     } else {
@@ -274,6 +297,10 @@ void cfEngine::constructLine_naive(int x1, int y1, int x2, int y2, sf::Color col
             pixBuffer.push_back(util::pix(sf::Vector2u(x,floor(y)), color));
         }
     }
+}
+
+void cfEngine::constructLine_bresenham() {
+
 }
 
 //do the distance measure with pixels in the AABB bounding box. mainly for testing and curiosity
@@ -344,6 +371,90 @@ void cfEngine::render_pixelArray() {
         window.clear(sf::Color::Black);
         texture.update(pixelArray.getByteArray());
         window.draw(sprite);
+        window.display();
+    }
+}
+
+void cfEngine::kmeans() {
+    int kmeans_max_iter = 10;
+    //randomly initialize points
+    std::vector<sf::Color> means, temp;
+    //std::vector<std::vector<sf::Color> > ksets;
+    std::vector<std::pair<sf::Color, int> > _ksets;
+    //std::cout<<num_clusters<<"\n";
+
+    for(int i = 0; i < num_clusters; ++i) {
+        means.push_back(availableColors[rand()%availableColors.size()-1]);
+    }
+    
+    int iter = 0;
+    while(iter < kmeans_max_iter) {
+        temp = std::vector<sf::Color>(means);
+        //assign each color to its closest kmeans color
+        for(int i = 0; i < availableColors.size(); ++i) {
+            float leastDist = FLT_MAX;
+            int leastIndex = 0;
+
+            for(int j = 0; j < num_clusters; ++j) {
+                float dist = util::euclideanDistanceSquared(availableColors[i], means[j]);
+                if(dist <= leastDist) {
+                    leastDist = dist;
+                    leastIndex = j;
+                }
+            }
+            _ksets.push_back(std::make_pair(availableColors[i], leastIndex));
+        }
+
+        //calculate new centroids
+        for(int i = 0; i < num_clusters; ++i) {
+            float rsum=0, gsum=0, bsum=0, asum=0;
+            for(int j = 0; j < _ksets.size(); ++j) {
+                if(_ksets[j].second == i) {
+                    //std::cout<<"huh?\n";
+                    rsum += _ksets[j].first.r;
+                    gsum += _ksets[j].first.g;
+                    bsum += _ksets[j].first.b;
+                    asum += _ksets[j].first.a;
+                }
+            }
+            means.push_back(sf::Color(rsum/num_clusters, gsum/num_clusters, bsum/num_clusters, asum/num_clusters));
+        }
+
+        if(temp == means) break;
+        iter++;
+        _ksets.clear();
+    }
+
+    //store calculated means to kmeansColors
+    kmeansColors = std::vector<sf::Color>(means);
+    //std::sort(kmeansColors.begin(), kmeansColors.end());
+}
+
+void cfEngine::showKmeansResult() {
+    sf::RenderWindow window(sf::VideoMode(1000, 300), "kMeans Result");
+    std::vector<sf::RectangleShape> color_rects;
+
+    for(int i = 0; i<num_clusters ;++i) {
+        sf::RectangleShape c;
+        c.setSize(sf::Vector2f(1000/num_clusters, 300));
+        c.setPosition((1000/num_clusters) * i, 0);
+        c.setFillColor(kmeansColors[i]);
+        color_rects.push_back(c);
+    }
+    
+    while (window.isOpen()) 
+    {
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
+        
+        window.clear(sf::Color::Black);
+        for(int i = 0; i < num_clusters ; ++i) {
+            window.draw(color_rects[i]);
+        }
         window.display();
     }
 }

@@ -20,7 +20,7 @@ inline bool operator ==(const util::pix &a, const util::pix &b) {
 
 inline float Q_rsqrt( float number );
 inline float euclideanDistance(const sf::Vector2u p1, const sf::Vector2u p2);
-inline float euclideanDistanceInverse(const sf::Color c1, const sf::Color c2);
+inline float euclideanDistanceInverse(const sf::Color c1, const sf::Color c2);//NOTE:currently not working
 inline float euclideanDistanceSquared(const sf::Color c1, const sf::Color c2);
 inline float taxiCabDistance(const sf::Color c1, const sf::Color c2);
 
@@ -30,11 +30,11 @@ inline float euclideanDistance(const sf::Vector2u p1, const sf::Vector2u p2) {
 
 inline float euclideanDistanceInverse(const sf::Color c1, const sf::Color c2) {
     //NOTE: lets try kicking out the alpha part - keep it strictly RGB
-    return  util::Q_rsqrt(((int)c1.r-c2.r)*((int)c1.r-c2.r) + ((int)c1.g-c2.g)*((int)c1.g-c2.g) + ((int)c1.b-c2.b)*((int)c1.b-c2.b));
+    return  util::Q_rsqrt(((float)c1.r-c2.r)*((float)c1.r-c2.r) + ((float)c1.g-c2.g)*((float)c1.g-c2.g) + ((float)c1.b-c2.b)*((float)c1.b-c2.b));
 }
 
 inline float euclideanDistanceSquared(const sf::Color c1, const sf::Color c2) {
-    return ((int)c1.r-c2.r)*((int)c1.r-c2.r) + ((int)c1.g-c2.g)*((int)c1.g-c2.g) + ((int)c1.b-c2.b)*((int)c1.b-c2.b);
+    return ((float)c1.r-c2.r)*((float)c1.r-c2.r) + ((float)c1.g-c2.g)*((float)c1.g-c2.g) + ((float)c1.b-c2.b)*((float)c1.b-c2.b);
 }
 
 inline float taxiCabDistance(const sf::Color c1, const sf::Color c2) {

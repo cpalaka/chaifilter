@@ -11,9 +11,8 @@
  */
 
 //TODO: profile entire code and see what is slowing things down so much
-//TODO: implement more distance functions
+//TODO: implement more distance functions -> implement cosine similarity and jaccard similarity
 
-//TODO: implement color segmenting <-- urgent
 
 //NOTE: it could be worth multithreading this
 
@@ -28,6 +27,11 @@
 //TODO: add feature where not only can you make the image out of shapes, but other images
 
 //TODO: lines, polygons, circles,etc
+//TODO: implememt bresenhams algo
+    //TODO: implement xiaolin wu algo
+
+//TODO: add timer to see how long each algo is taking
+ 
 
 #include "cfEngine.h"
 #include "PixelArray.h"
@@ -40,7 +44,7 @@ int main(const int argc, const char* argv[]) {
     if(!cf.configureEngineSettings(argc, argv)) {
         exit(1);
     }
-    cf.init(sf::Color::Blue);
+    cf.init(sf::Color::Black);
     cf.runAlgo();
     return 0;
 }
