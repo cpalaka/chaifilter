@@ -51,6 +51,10 @@ private:
     //run kmeans algo on availableColors and output to kmeansColors
     void kmeans();
 
+    //
+    void sortColorVector(std::vector<sf::Color>& vec);
+    util::HSL rgbToHsl(sf::Color c);
+
     inline void drawGraphic(bool flag = false) {
         for(const auto& i: pixBuffer) {
             if(flag) pixBufferTemp.push_back(util::pix(sf::Vector2u(i.loc.x, i.loc.y), pixelArray.getPixel(i.loc.x, i.loc.y)));
@@ -92,6 +96,7 @@ private:
     bool useAABBToCompare;
     bool visualMode;
     bool useKmeans;
+    bool showKMeansResult;
     int num_clusters;//k
 };
 

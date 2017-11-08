@@ -7,7 +7,8 @@ cfEngine::cfEngine() :
     dfn(NULL),
     visualMode(false),
     useKmeans(false),
-    num_clusters(4)
+    num_clusters(4),
+    showKMeansResult(false)
 {}
 
 void cfEngine::init(sf::Color initialFill) {
@@ -15,6 +16,8 @@ void cfEngine::init(sf::Color initialFill) {
     resolution = inputpic.getSize();
 
     availableColors = getUniqueColorsFromImage();
+   
+    //sortColorVector(availableColors);
     texture.create(resolution.x, resolution.y);
     sprite.setTexture(texture);
     pixelArray = PixelArray(resolution, initialFill);
@@ -27,7 +30,7 @@ void cfEngine::init(sf::Color initialFill) {
 
 bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
     //Handle command line options
-    //filename -v(isual)/not -t line/circle/polygon/sprite number -i(terations) number(-1 for infinity) -d(istance) taxi/euclid/inverse(default euclid) -AABB(if not, then perpixel) -num_clusters(do kmeans)
+    //filename -v(isual)/not -t line/circle/polygon/sprite number -i(terations) number(-1 for infinity) -d(istance) taxi/euclid/inverse(default euclid) -AABB(if not, then perpixel) -k/v num_clusters(do kmeans)
     bool toption = false;
     bool distanceMetricSpecified = false;
     if(argc <= 1) {
@@ -115,6 +118,7 @@ bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
                     case 'k':
                     {
                         useKmeans = true;
+                        if(strlen(argv[args]) == 3) showKMeansResult = true; // for option -kv (kmeans visual)
                         num_clusters = atoi(argv[args+1]);
                         args++;
                         break;
@@ -251,20 +255,22 @@ void cfEngine::runAlgo() {
     if(useKmeans) {
         kmeans();
         //std::cout<<"Kmeans done. Size of kmeansColors: "<<kmeansColors.size()<<"\n";
-        //showKmeansResult();
+        if(showKMeansResult) showKmeansResult();
     }
 
     if(visualMode) {
         render_loop();
     } else {
         //loop
-        int count = 0;
-        while(count < num_of_iter) {
-            algo_loop();
-            count++;
-        }
+        if(num_of_iter != INT_MAX) {
+            int count = 0;
+            while(count < num_of_iter) {
+                algo_loop();
+                count++;
+            }
 
-        render_pixelArray();
+            render_pixelArray();
+        }
     }
 }
 
@@ -377,19 +383,17 @@ void cfEngine::render_pixelArray() {
 
 void cfEngine::kmeans() {
     int kmeans_max_iter = 10;
-    //randomly initialize points
-    std::vector<sf::Color> means, temp;
-    //std::vector<std::vector<sf::Color> > ksets;
-    std::vector<std::pair<sf::Color, int> > _ksets;
-    //std::cout<<num_clusters<<"\n";
 
+    std::vector<sf::Color> means, temp;
+    std::vector<std::pair<sf::Color, int> > _ksets;
+
+    //randomly initialize points
     for(int i = 0; i < num_clusters; ++i) {
-        means.push_back(availableColors[rand()%availableColors.size()-1]);
+        means.push_back(availableColors[rand()%availableColors.size()]);
     }
     
     int iter = 0;
     while(iter < kmeans_max_iter) {
-        temp = std::vector<sf::Color>(means);
         //assign each color to its closest kmeans color
         for(int i = 0; i < availableColors.size(); ++i) {
             float leastDist = FLT_MAX;
@@ -397,7 +401,7 @@ void cfEngine::kmeans() {
 
             for(int j = 0; j < num_clusters; ++j) {
                 float dist = util::euclideanDistanceSquared(availableColors[i], means[j]);
-                if(dist <= leastDist) {
+                if(dist < leastDist) {
                     leastDist = dist;
                     leastIndex = j;
                 }
@@ -408,31 +412,42 @@ void cfEngine::kmeans() {
         //calculate new centroids
         for(int i = 0; i < num_clusters; ++i) {
             float rsum=0, gsum=0, bsum=0, asum=0;
+            std::vector<int> clusterSizeCounts(num_clusters, 0); 
             for(int j = 0; j < _ksets.size(); ++j) {
+
                 if(_ksets[j].second == i) {
-                    //std::cout<<"huh?\n";
-                    rsum += _ksets[j].first.r;
-                    gsum += _ksets[j].first.g;
-                    bsum += _ksets[j].first.b;
-                    asum += _ksets[j].first.a;
+                    rsum += (float)_ksets[j].first.r;
+                    gsum += (float)_ksets[j].first.g;
+                    bsum += (float)_ksets[j].first.b;
+                    asum += (float)_ksets[j].first.a;
+                    clusterSizeCounts[i]++;
                 }
             }
-            means.push_back(sf::Color(rsum/num_clusters, gsum/num_clusters, bsum/num_clusters, asum/num_clusters));
+            temp.push_back(sf::Color((int)rsum/clusterSizeCounts[i], (int)gsum/clusterSizeCounts[i], (int)bsum/clusterSizeCounts[i], (int)asum/clusterSizeCounts[i]));
         }
-
-        if(temp == means) break;
+        
+        //break out of loop if it converges
+        if(temp == means) {
+            std::cout<<"Broke out of loop at iter: "<<iter<<"\n";
+            break;
+        } else {
+            means = std::vector<sf::Color>(temp);
+            temp.clear();
+        }
         iter++;
         _ksets.clear();
     }
 
     //store calculated means to kmeansColors
     kmeansColors = std::vector<sf::Color>(means);
-    //std::sort(kmeansColors.begin(), kmeansColors.end());
 }
 
 void cfEngine::showKmeansResult() {
     sf::RenderWindow window(sf::VideoMode(1000, 300), "kMeans Result");
     std::vector<sf::RectangleShape> color_rects;
+
+    //sort the vector by hue so it looks nice
+    sortColorVector(kmeansColors);
 
     for(int i = 0; i<num_clusters ;++i) {
         sf::RectangleShape c;
@@ -458,3 +473,64 @@ void cfEngine::showKmeansResult() {
         window.display();
     }
 }
+
+void cfEngine::sortColorVector(std::vector<sf::Color>& vec) {
+    std::vector<util::HSL> colors;
+
+    for(const auto& i: vec) {
+        colors.push_back(rgbToHsl(i));
+    }
+
+    std::sort(colors.begin(), colors.end(), [](util::HSL a, util::HSL b) { return a.h < b.h ;});
+    std::vector<sf::Color> sortedRGB;
+
+    for(int i = 0; i<colors.size(); ++i) {
+        sortedRGB.push_back(vec[colors[i].id]);
+    }
+
+    //vec = sortedRGB;
+    assert(vec.size() == sortedRGB.size());
+    vec = std::vector<sf::Color>(sortedRGB);
+}
+
+util::HSL cfEngine::rgbToHsl(sf::Color c) {
+    static int i = 0;
+    float r = (float)c.r/255, g = (float)c.g/255, b = (float)c.b/255;
+
+    std::vector<float> v({(float)c.r/255, (float)c.g/255, (float)c.b/255});
+    std::sort(v.begin(), v.end());
+    float max = v[2]; 
+    float min = v[0];
+    float h = (max + min)/2;
+    float s = h;
+    float l = h;
+
+    if(max == min) {
+      h = 0; // achromatic
+      s=0;
+    } else {
+      float d = max - min;
+      s = (l > 0.5) ? d / (2 - max - min) : d / (max + min);
+
+      if(max == r) h = (g - b) / d + (g < b ? 6 : 0);
+      else if(max == g) h = (b - r) / d + 2;
+      else if(max == b) h = (r - g) / d + 4;
+      h /= 6;
+    }
+    util::HSL result(h * 360, s * 100, l * 100, i);
+    i++;
+    return result;
+}
+
+/*
+var sortedRgbArr = rgbArr.map(function(c, i) {
+    // Convert to HSL and keep track of original indices
+    return {color: rgbToHsl(c), index: i};
+  }).sort(function(c1, c2) {
+    // Sort by hue
+    return c1.color[0] - c2.color[0];
+  }).map(function(data) {
+    // Retrieve original RGB color
+    return rgbArr[data.index];
+  });
+  */

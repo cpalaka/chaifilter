@@ -14,6 +14,16 @@ struct pix {
     inline friend bool operator ==(const util::pix &a, const util::pix &b);
 };
 
+//used to sort the colors by hue
+struct HSL {
+    HSL(float _h, float _s, float _l, int _id) : h(_h), s(_s), l(_l), id(_id) {};
+    float h;
+    float s;
+    float l;
+    int id;
+};
+
+
 inline bool operator ==(const util::pix &a, const util::pix &b) {
     return ( (a.loc == b.loc) && (a.c == b.c));
 }
