@@ -3,16 +3,23 @@ cfEngine::cfEngine() :
     num_of_iter(INT_MAX),
     distanceIsInversed(false),
     useAABBToCompare(false),
-    max_line_length(50),
+    max_line_length(0),
     dfn(NULL),
     visualMode(false),
     useKmeans(false),
-    num_clusters(4),
-    showKMeansResult(false)
+    num_clusters(0),
+    graphicType(NONE),
+    showKMeansResult(false),
+    useKmeansplus(false),
+    writeToBMPDetailed(false),
+    writeToBMPNumbered(false),
+    df(EUCLID)
 {}
 
 void cfEngine::init(sf::Color initialFill) {
-    inputpic.loadFromFile("../images/" + input_filename);
+    if(!inputpic.loadFromFile("../images/" + input_filename)) {
+        exit(1);
+    }
     resolution = inputpic.getSize();
 
     availableColors = getUniqueColorsFromImage();
@@ -30,7 +37,7 @@ void cfEngine::init(sf::Color initialFill) {
 
 bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
     //Handle command line options
-    //filename -v(isual)/not -t line/circle/polygon/sprite number -i(terations) number(-1 for infinity) -d(istance) taxi/euclid/inverse(default euclid) -AABB(if not, then perpixel) -k/v num_clusters(do kmeans)
+    //filename -v(isual)/not -t line/circle/polygon/sprite number -i(terations) number(-1 for infinity) -d(istance) taxi/euclid/inverse(default euclid) -AABB(if not, then perpixel) -k/v/+ num_clusters(do kmeans) -w(output file)
     bool toption = false;
     bool distanceMetricSpecified = false;
     if(argc <= 1) {
@@ -51,7 +58,8 @@ bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
                             case 'l':
                             {
                                 graphicType = LINE;
-                                max_line_length = atoi(argv[args+2]);
+                                if(args+2 > argc-1 || argv[args+2][0] == '-') {std::cout<<"Options error.\n"; printUsage();exit(1);}
+                                else {max_line_length = atoi(argv[args+2]);}
                                 args++;
                                 break;
                             }
@@ -94,13 +102,27 @@ bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
                         distanceMetricSpecified = true;
                         if(argv[args+1][0] == 'e') {
                             dfn = util::euclideanDistanceSquared;
+                            df = EUCLID;
                         } else
                         if(argv[args+1][0] == 't') {
                             dfn = util::taxiCabDistance;
+                            df = TAXICAB;
                         } else
-                        if(argv[args+1][0] == 'i') {
+                        if(argv[args+1][0] == 'i') {// this shit is never used anyways
                             dfn == util::euclideanDistanceInverse;
                             distanceIsInversed = true;
+                        } else
+                        if(argv[args+1][0] == 'c') {
+                            //dfn == util::euclideanDistanceInverse; << TODO:implement
+                            df = COSINE;
+                        }else 
+                        if(argv[args+1][0] == 'j') {
+                            //dfn == util::euclideanDistanceInverse; << TODO:implement
+                            df = JACCARD;
+                        }else {
+                            std::cout<<"Options error.\n";
+                            printUsage();
+                            exit(1);
                         }
                         args++;
                         break;
@@ -118,10 +140,24 @@ bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
                     case 'k':
                     {
                         useKmeans = true;
-                        if(strlen(argv[args]) == 3) showKMeansResult = true; // for option -kv (kmeans visual)
+                        if(strlen(argv[args]) == 3) {
+                            if(argv[args][2] == 'v') showKMeansResult = true; // for option -kv (kmeans visual)
+                            if(argv[args][2] == '+') useKmeansplus = true; // for option -kv (kmeans visual)
+                        }
+                        if(strlen(argv[args]) == 4) useKmeansplus = true; // for option -kv+
                         num_clusters = atoi(argv[args+1]);
                         args++;
                         break;
+                    }
+                    case 'w':
+                    {
+                        writeToBMPDetailed = true;
+                        break;
+                    }
+                    case 'o':
+                    {
+                        writeToBMPNumbered = true;
+
                     }
                     default:
                     {
@@ -254,7 +290,6 @@ void cfEngine::runAlgo() {
     //test
     if(useKmeans) {
         kmeans();
-        //std::cout<<"Kmeans done. Size of kmeansColors: "<<kmeansColors.size()<<"\n";
         if(showKMeansResult) showKmeansResult();
     }
 
@@ -268,10 +303,75 @@ void cfEngine::runAlgo() {
                 algo_loop();
                 count++;
             }
-
             render_pixelArray();
         }
     }
+
+    if(writeToBMPDetailed) {
+        savePixelArrayToFile();
+    }
+}
+
+void cfEngine::savePixelArrayToFile() {
+    //construct BMP file
+    std::vector<sf::Color> vec = pixelArray.getColorVector();
+    BMP output;
+    output.SetSize(resolution.x, resolution.y);
+    output.SetBitDepth(32);
+    
+    for(int i = 0; i < resolution.x; ++i) {
+        for(int j = 0 ; j< resolution.y ; ++j) {
+            sf::Color c = pixelArray.getPixel(i, j);
+            output(i,j)->Red = c.r;
+            output(i,j)->Green = c.g;
+            output(i,j)->Blue = c.b;
+            output(i,j)->Alpha = c.a;
+
+        }
+    }
+
+    std::string outfile_name = generateDetailedOutputString();
+    output.WriteToFile(outfile_name.c_str());
+}
+
+std::string cfEngine::generateDetailedOutputString() {
+    std::string type;
+    std::string dist_measure;
+    std::string kmeansstr;
+    int file_len = std::strcspn(input_filename.c_str(), ".");
+    input_filename.resize(file_len, '0');
+    switch(graphicType) {
+        case LINE:
+            type = "line";
+            break;
+        case CIRCLE:
+            type = "circle";
+            break;
+        default:
+            break;
+    }
+
+    switch(df) {
+        case EUCLID:
+            dist_measure = "euclid";
+            break;
+        case TAXICAB:
+            dist_measure = "taxicab";
+            break;
+        case COSINE:
+            dist_measure = "cosine";
+            break;
+        case JACCARD:
+            dist_measure = "jaccard";
+            break;
+        default:
+            break;
+    }
+    if(useKmeans) {
+        kmeansstr = "k="+ std::to_string(num_clusters);
+    }
+    const std::string string = "../output/"+input_filename+"-"+type+"("+ std::to_string(max_line_length) +")-iter"+ std::to_string(num_of_iter)+"-"+kmeansstr+"df="+dist_measure+".bmp";
+    return string;
 }
 
 //setup affected-pixel vector (pixBuffer) so we can compare later
@@ -382,14 +482,19 @@ void cfEngine::render_pixelArray() {
 }
 
 void cfEngine::kmeans() {
-    int kmeans_max_iter = 10;
+    int kmeans_max_iter = 50;
 
     std::vector<sf::Color> means, temp;
     std::vector<std::pair<sf::Color, int> > _ksets;
 
-    //randomly initialize points
-    for(int i = 0; i < num_clusters; ++i) {
-        means.push_back(availableColors[rand()%availableColors.size()]);
+    if(useKmeansplus) {
+        //TODO:use kmeans+ algo to initialize points
+
+    } else {
+        //randomly initialize points
+        for(int i = 0; i < num_clusters; ++i) {
+            means.push_back(availableColors[rand()%availableColors.size()]);
+        }
     }
     
     int iter = 0;
@@ -423,7 +528,11 @@ void cfEngine::kmeans() {
                     clusterSizeCounts[i]++;
                 }
             }
-            temp.push_back(sf::Color((int)rsum/clusterSizeCounts[i], (int)gsum/clusterSizeCounts[i], (int)bsum/clusterSizeCounts[i], (int)asum/clusterSizeCounts[i]));
+            if(clusterSizeCounts[i] != 0) {
+                temp.push_back(sf::Color((int)rsum/clusterSizeCounts[i], (int)gsum/clusterSizeCounts[i], (int)bsum/clusterSizeCounts[i], (int)asum/clusterSizeCounts[i]));
+            } else {
+                temp.push_back(means[i]);
+            }
         }
         
         //break out of loop if it converges
@@ -437,7 +546,6 @@ void cfEngine::kmeans() {
         iter++;
         _ksets.clear();
     }
-
     //store calculated means to kmeansColors
     kmeansColors = std::vector<sf::Color>(means);
 }
@@ -521,16 +629,3 @@ util::HSL cfEngine::rgbToHsl(sf::Color c) {
     i++;
     return result;
 }
-
-/*
-var sortedRgbArr = rgbArr.map(function(c, i) {
-    // Convert to HSL and keep track of original indices
-    return {color: rgbToHsl(c), index: i};
-  }).sort(function(c1, c2) {
-    // Sort by hue
-    return c1.color[0] - c2.color[0];
-  }).map(function(data) {
-    // Retrieve original RGB color
-    return rgbArr[data.index];
-  });
-  */

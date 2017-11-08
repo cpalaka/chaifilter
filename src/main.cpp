@@ -12,7 +12,7 @@
 
 //TODO: profile entire code and see what is slowing things down so much
 //TODO: implement more distance functions -> implement cosine similarity and jaccard similarity
-
+//TODO:
 
 //NOTE: it could be worth multithreading this
 

@@ -10,17 +10,30 @@
 #include <unordered_map>
 #include <cstring>
 #include <cstdlib>
+#include <cstdio>
 #include <climits>
 #include <cfloat>
+#include <Windows.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "PixelArray.h"
 #include "Util.h"
+#include "easybmp/EasyBMP.h"
 
 enum GraphicType {
     LINE,
     CIRCLE,
     POLYGON,
     SPRITE,
+    NONE,
+};
+
+enum distFunc {
+    EUCLID,
+    TAXICAB,
+    COSINE,
+    JACCARD,
 };
 
 typedef float (*distance_func)(sf::Color,sf::Color);
@@ -39,6 +52,10 @@ private:
     void render_loop();
     void algo_loop();
     void render_pixelArray();
+
+    void savePixelArrayToFile();
+    std::string generateDetailedOutputString();
+
     //Line drawing algos
     void constructLine_naive(int x1, int y1, int x2, int y2, sf::Color color);
     void constructLine_bresenham();
@@ -51,7 +68,7 @@ private:
     //run kmeans algo on availableColors and output to kmeansColors
     void kmeans();
 
-    //
+    //sort color vector by hue
     void sortColorVector(std::vector<sf::Color>& vec);
     util::HSL rgbToHsl(sf::Color c);
 
@@ -80,6 +97,7 @@ private:
     sf::Sprite sprite;
     sf::Vector2u resolution;
     GraphicType graphicType;
+    distFunc df;
 
     int num_of_iter;
 
@@ -92,11 +110,16 @@ private:
     std::vector<sf::Color> kmeansColors;
 
     distance_func dfn;
+
+    //Option flags
     bool distanceIsInversed;
     bool useAABBToCompare;
     bool visualMode;
     bool useKmeans;
     bool showKMeansResult;
+    bool useKmeansplus;
+    bool writeToBMPDetailed;
+    bool writeToBMPNumbered;
     int num_clusters;//k
 };
 
