@@ -104,10 +104,19 @@ Flag for showing time taken by different functions in cfEngine. Simple profiler.
 ##### `./chanfilter inputpic.jpg -t rect 70 70 -i 1000000 -k 15 -w -d taxi`
 
 ## Examples
-Input:
-![Input image of me in Chicago with friends](https://raw.githubusercontent.com/cpalaka/chanfilter/master/images/chictrip.jpeg)
 
-10million iterations, drawn with lines of max length of 50 pixels:
-![Output image of me in Chicago with friends](https://raw.githubusercontent.com/cpalaka/chanfilter/master/output/chictrip-line(50)-iter10000000-df=euclid.bmp)
+![kitty no kmeans](output/kitty-line(60)-iter2000000-df=euclid.bmp)
+
+![kitty with kmeans](output/kitty-line(50)-iter10000000-k=50df=euclid.bmp)
+
+![transcend-wallpaper](output/transcend-line(50)-iter10000000-k=50df=euclid.bmp)
+
+![anime-girl](output/animegirl2-line(50)-iter2000000-df=euclid.bmp)
+
+![anime-pic](output/animepic1-line(50)-iter10000000-k=50df=euclid.bmp)
+
+![seashore](output/seashore-line(50)-iter10000000-df=euclid.bmp)
+
+![Output image of me in Chicago with friends](output/chictrip-line(50)-iter10000000-df=euclid.bmp)
 
 ## THIS IS A WIP AND UNFINISHED
