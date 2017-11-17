@@ -1,6 +1,6 @@
 # ChaiFilter
 
-![input LETSGO](/images/letsgo.jpg)![output LETSGO](output/letsgo-line(100)-iter2000000-df%3Deuclid.bmp)![output LETSGO](output/letsgo-line(50)-iter10000000-k%3D25df%3Deuclid.bmp)
+![input LETSGO](/output/ball-line(50)-iter15000000-k=50df=euclid)
 
 ## Explanation
 This program is my implementation of this simple image processing algorithm:
