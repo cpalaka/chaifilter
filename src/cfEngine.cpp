@@ -38,7 +38,7 @@ void cfEngine::init(sf::Color initialFill) {
 
 bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
     //Handle command line options
-    //filename -v(isual)/not -t line/circle/polygon/sprite number -i(terations) number(-1 for infinity) -d(istance) taxi/euclid/inverse(default euclid) -AABB(if not, then perpixel) -k/v/+ num_clusters(do kmeans) -w(output file) -p (profile code and show results)
+    //filename -v(isual)/not -t line/circle/rect/sprite number -i(terations) number(-1 for infinity) -d(istance) taxi/euclid/inverse(default euclid) -AABB(if not, then perpixel) -k/v/+ num_clusters(do kmeans) -w(output file) -p (profile code and show results)
     bool toption = false;
     bool distanceMetricSpecified = false;
     if(argc <= 1) {
@@ -70,10 +70,10 @@ bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
                                 graphicType = CIRCLE;
                                 break;
                             }
-                            case 'P':
-                            case 'p':
+                            case 'R':
+                            case 'r':
                             {
-                                graphicType = POLYGON;
+                                graphicType = RECTANGLE;
                                 break;
                             }
                             case 'S':
@@ -242,7 +242,7 @@ void cfEngine::algo_loop() {
         
             break;
         }
-        case POLYGON:
+        case RECTANGLE:
         {
 
             break;
@@ -499,7 +499,7 @@ float cfEngine::measureAverageDistance_perPixel(int id) {
 void cfEngine::render_loop() {
     int counter = 0;
     bool printCount = false;
-    sf::RenderWindow window(sf::VideoMode(resolution.x, resolution.y), "ChanFilter");
+    sf::RenderWindow window(sf::VideoMode(resolution.x, resolution.y), "ChaiFilter");
     while (window.isOpen()) 
     {
         
@@ -526,7 +526,7 @@ void cfEngine::render_loop() {
 }
 
 void cfEngine::render_pixelArray() {
-    sf::RenderWindow window(sf::VideoMode(resolution.x, resolution.y), "ChanFilter");
+    sf::RenderWindow window(sf::VideoMode(resolution.x, resolution.y), "ChaiFilter");
     while (window.isOpen()) 
     {
         sf::Event event;

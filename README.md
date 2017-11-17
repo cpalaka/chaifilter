@@ -1,8 +1,7 @@
-# ChanFilter
+# ChaiFilter
 
 ## Explanation
-My attempt at a recent programming 'competition' on /g/ - a relatively simple image post-processing task - with the following algorithm:
-
+This program is my implementation of this simple image processing algorithm:
 - load an image (source image)
 - get a list of all the colors in the source image
 - create 2 blank images (image1 and image2)
@@ -13,19 +12,77 @@ My attempt at a recent programming 'competition' on /g/ - a relatively simple im
 
 ## Build Instructions
 
-Only requirements are SFML2.4 and the MingW C++ compiler on Windows.
+Only requirements are SFML2.4 and the MingW C++ compiler on Windows and EasyBMP which is included with the source.
 
-### Visual Studio Code
+#### Command Line/Visual Studio Code
 
-I didn't want to use an IDE like the regular Visual Studio 2017 for this so I chose instead to run it entirely in Visual Studio Code.
-To get yours working the same way, follow these settings -
+Build the executable in Visual Studio Code by following these instructions -
 
 * In **`c_cpp_properties.json`**, depending on your platform ("name"), change the `includePath` and `browse.path` json lists to include paths to both your C++ compiler and SFML headers
-* Update **`tasks.json`** with your build command. For example, mine is:
+* Update **`tasks.json`** with your standard C++ compiler build command. For example, mine is:
 
-` g++ main.cpp -I"D:/Code/C++/lib/SFML-2.4.2/include" -L"D:/Code/C++/lib/SFML-2.4.2/lib" -lsfml-graphics -lsfml-window -lsfml-system -std=c++17 -g -o testmain`
+` g++ src/main.cpp src/cfEngine.cpp src/easybmp/EasyBMP.o -I"D:/Code/C++/lib/SFML-2.4.2/include" -L"D:/Code/C++/lib/SFML-2.4.2/lib" -lsfml-graphics -lsfml-window -lsfml-system -std=c++17 -g -o chaiFilter`
 
 This will allow you to press Ctrl+Shift+B in your Visual Studio Code editor to automatically build your executable in your directory.
-> Remember to change your the `-I` and `-L` options to point to paths to the SFML `/include` and `/lib` directories on your specific system.
+
+## Installation
+The only installation instruction is to create two folders at the same directory level as the final executable named - `images` and `output`.
+
+## Usage
+Keep the desired input images in the `images` folder and then execute chaiFilter on your favorite commandline.
+
+#### Command Line Options
+
+##### -t GraphicType arg1 arg2.. 
+*GraphicType*:string
+* `line`
+    1. *arg1*:integer - Maximum line length
+* `circle`
+    1. *arg1*:integer - Maximum circle radius
+* `rect`
+    1. *arg1*:integer - Maximum line width
+    2. *arg2*:integer - Maximum rectangle height
+* `sprite`
+    1. *coming soon*
+>blank arguments will cause errors
+
+##### -i numberOfIterations
+*numberOfIterations*:integer
+>Omit in visual mode for an infinite render loop
+
+##### -v
+Flag for `visual mode` or continuous rendering of the algorithm output onto a window.
+>Warning: takes a long time
+
+##### -d distanceFunction
+*distanceFunction*:string
+* `euclideanDistance`
+* `taxiCabDistance`
+
+##### -AABB
+Flag for using an AABB box to compare pixels instead of per-pixel. **Not recommended.**
+
+##### -k.. numberOfClusters
+Use this option to do the chaiFilter algorithm with only *numberOfClusters* most important colors instead of all unique colors. This is implemented in the standard way - kmeans clustering.
+
+* `k`: do kmeans with k=numberOfClusters
+* `kv`: do kmeans with k=numberOfClusters and render in window
+* `kv+`: do kmeans with k=numberOfClusters and render in window with kmeans++ algo for initialization
+
+*numberOfClusters*:integer
+
+##### -w
+Flag for outputting the result as a bmp file in `outputs/`.
+
+##### -p
+Flag for showing time taken by different functions in cfEngine. Simple profiler.
+>Not implemented yet.
+
+## Examples
+Input:
+![Input image of me in Chicago with friends](https://raw.githubusercontent.com/cpalaka/chanfilter/master/images/chictrip.jpeg)
+
+10million iterations, drawn with lines of max length of 50 pixels:
+![Output image of me in Chicago with friends](https://raw.githubusercontent.com/cpalaka/chanfilter/master/output/chictrip-line(50)-iter10000000-df=euclid.bmp)
 
 ## THIS IS A WIP AND UNFINISHED

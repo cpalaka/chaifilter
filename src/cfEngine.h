@@ -27,7 +27,7 @@
 enum GraphicType {
     LINE,
     CIRCLE,
-    POLYGON,
+    RECTANGLE,
     SPRITE,
     NONE,
 };
