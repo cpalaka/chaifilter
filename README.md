@@ -67,8 +67,8 @@ Keep the desired input images in the `images` folder and then execute chaiFilter
 * **`-d distanceFunction`**
 
     ##### **distanceFunction**:*string*
-        * `euclideanDistance`
-        * `taxiCabDistance`
+        * *euclideanDistance*
+        * *taxiCabDistance*
 
 * **`-AABB`**
 
@@ -92,6 +92,14 @@ Flag for outputting the result as a bmp file in `outputs/`.
 
 Flag for showing time taken by different functions in cfEngine. Simple profiler.
 >Not implemented yet.
+
+## Example Usage
+
+#### `./chanfilter inputpic.jpg -t lines 50 -i 1000000 -v`
+
+#### `./chanfilter inputpic.jpg -kv 25 -w`
+
+#### `./chanfilter inputpic.jpg -t rect 70 70 -i 1000000 -k 15 -w -d taxi`
 
 ## Examples
 Input:
