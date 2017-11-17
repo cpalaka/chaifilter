@@ -32,49 +32,60 @@ The only installation instruction is to create two folders at the same directory
 Keep the desired input images in the `images` folder and then execute chaiFilter on your favorite commandline.
 
 #### Command Line Options
+* **`FULL IMAGE NAME`**
+
+>example: inputpic.jpg
 
 * **`-t GraphicType arg1 arg2..`**
-*GraphicType*:string
-* `line`
-    1. *arg1*:integer - Maximum line length
-* `circle`
-    1. *arg1*:integer - Maximum circle radius
-* `rect`
-    1. *arg1*:integer - Maximum line width
-    2. *arg2*:integer - Maximum rectangle height
-* `sprite`
-    1. *coming soon*
->blank arguments will cause errors
 
-* -i numberOfIterations
-*numberOfIterations*:integer
->Omit in visual mode for an infinite render loop
+    **GraphicType**:*string*
+    * `line`
+        - **arg1**:*integer* - Maximum line length
+    * `circle`
+        - **arg1**:*integer* - Maximum circle radius
+    * `rect`
+        - **arg1**:*integer* - Maximum line width
+        - **arg2**:*integer* - Maximum rectangle height
+    * `sprite`
+        - *coming soon*
+    >blank arguments will cause errors
 
-* -v
-Flag for `visual mode` or continuous rendering of the algorithm output onto a window.
->Warning: takes a long time
+* **`-i numberOfIterations`**
 
-* -d distanceFunction
-*distanceFunction*:string
-* `euclideanDistance`
-* `taxiCabDistance`
+    **numberOfIterations**:*integer*
+        >Omit in visual mode for an infinite render loop
 
-* -AABB
-Flag for using an AABB box to compare pixels instead of per-pixel. **Not recommended.**
+* **`-v`**
 
-* -k.. numberOfClusters
-Use this option to do the chaiFilter algorithm with only *numberOfClusters* most important colors instead of all unique colors. This is implemented in the standard way - kmeans clustering.
+    Flag for `visual mode` or continuous rendering of the algorithm output onto a window.
+        >Warning: takes a long time
 
-* `k`: do kmeans with k=numberOfClusters
-* `kv`: do kmeans with k=numberOfClusters and render in window
-* `kv+`: do kmeans with k=numberOfClusters and render in window with kmeans++ algo for initialization
+* **`-d distanceFunction`**
 
-*numberOfClusters*:integer
+    **distanceFunction**:*string*
+        * `euclideanDistance`
+        * `taxiCabDistance`
 
-* -w
+* **`-AABB`**
+
+    Flag for using an AABB box to compare pixels instead of per-pixel. **Not recommended.**
+
+* **`-k.. numberOfClusters`**
+
+    **numberOfClusters**:*integer*
+
+    Use this option to do the chaiFilter algorithm with only *numberOfClusters* most important colors instead of all unique colors. This is implemented in the standard way - kmeans clustering.
+
+    * `k`: do kmeans with k=numberOfClusters
+    * `kv`: do kmeans with k=numberOfClusters and render in window
+    * `kv+`: do kmeans with k=numberOfClusters and render in window with kmeans++ algo for initialization
+
+* **`-w`**
+
 Flag for outputting the result as a bmp file in `outputs/`.
 
-* -p
+* **`-p`**
+
 Flag for showing time taken by different functions in cfEngine. Simple profiler.
 >Not implemented yet.
 
