@@ -34,11 +34,11 @@ Keep the desired input images in the `images` folder and then execute chaiFilter
 #### Command Line Options
 * **`FULL IMAGE NAME`**
 
->example: inputpic.jpg
+    >example: inputpic.jpg
 
 * **`-t GraphicType arg1 arg2..`**
 
-    **GraphicType**:*string*
+    ##### **GraphicType**:*string*
     * `line`
         - **arg1**:*integer* - Maximum line length
     * `circle`
@@ -48,31 +48,35 @@ Keep the desired input images in the `images` folder and then execute chaiFilter
         - **arg2**:*integer* - Maximum rectangle height
     * `sprite`
         - *coming soon*
+
     >blank arguments will cause errors
+    >examples: `-t line 50`, `-t rect 100 40`
 
 * **`-i numberOfIterations`**
 
-    **numberOfIterations**:*integer*
-        >Omit in visual mode for an infinite render loop
+    ##### **numberOfIterations**:*integer*
+
+    >Omit in `visual mode` for an infinite render loop
 
 * **`-v`**
 
     Flag for `visual mode` or continuous rendering of the algorithm output onto a window.
-        >Warning: takes a long time
+
+    >Warning: takes a long time
 
 * **`-d distanceFunction`**
 
-    **distanceFunction**:*string*
+    ##### **distanceFunction**:*string*
         * `euclideanDistance`
         * `taxiCabDistance`
 
 * **`-AABB`**
 
-    Flag for using an AABB box to compare pixels instead of per-pixel. **Not recommended.**
+    Flag for using an AABB box to compare pixels instead of per-pixel. ** *Not recommended.* **
 
 * **`-k.. numberOfClusters`**
 
-    **numberOfClusters**:*integer*
+    ##### **numberOfClusters**:*integer*
 
     Use this option to do the chaiFilter algorithm with only *numberOfClusters* most important colors instead of all unique colors. This is implemented in the standard way - kmeans clustering.
 
