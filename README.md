@@ -34,7 +34,7 @@ The only installation instruction is to create two folders at the same directory
 Keep the desired input images in the `images` folder and then execute chaiFilter on your favorite commandline.
 
 #### Command Line Options
-* **`FULL IMAGE NAME`**
+* **`Full Image Name`**
 
     >example: inputpic.jpg
 
@@ -46,12 +46,13 @@ Keep the desired input images in the `images` folder and then execute chaiFilter
     * `circle`
         - **arg1**:*integer* - Maximum circle radius
     * `rect`
-        - **arg1**:*integer* - Maximum line width
+        - **arg1**:*integer* - Maximum rectangle width
         - **arg2**:*integer* - Maximum rectangle height
     * `sprite`
         - *coming soon*
 
     >blank arguments will cause errors
+    
     >examples: `-t line 50`, `-t rect 100 40`
 
 * **`-i numberOfIterations`**
@@ -69,8 +70,8 @@ Keep the desired input images in the `images` folder and then execute chaiFilter
 * **`-d distanceFunction`**
 
     ##### **distanceFunction**:*string*
-        * *euclideanDistance*
-        * *taxiCabDistance*
+        * `euclideanDistance`
+        * `taxiCabDistance`
 
 * **`-AABB`**
 

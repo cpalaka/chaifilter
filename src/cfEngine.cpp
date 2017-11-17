@@ -599,7 +599,7 @@ void cfEngine::kmeans() {
         
         //break out of loop if it converges
         if(temp == means) {
-            //std::cout<<"Broke out of loop at iter: "<<iter<<"\n";
+            std::cout<<"Broke out of loop at iter: "<<iter<<"\n";
             break;
         } else {
             means = std::vector<sf::Color>(temp);
