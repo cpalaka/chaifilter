@@ -1,6 +1,6 @@
 # ChaiFilter
 
-![input LETSGO](https://raw.githubusercontent.com/cpalaka/chanfilter/master/images/letsgo.jpg) | ![output LETSGO](https://raw.githubusercontent.com/cpalaka/chanfilter/master/images/letsgo-line(100)-iter2000000-df=euclid.bmp)
+![input LETSGO](https://raw.githubusercontent.com/cpalaka/chanfilter/master/images/letsgo.jpg) | ![output LETSGO](https://raw.githubusercontent.com/cpalaka/chanfilter/master/images/letsgo-line(100)-iter2000000-df%3Deuclid.bmp)
 
 ## Explanation
 This program is my implementation of this simple image processing algorithm:
