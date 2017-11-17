@@ -1,5 +1,7 @@
 # ChaiFilter
 
+![input LETSGO](https://raw.githubusercontent.com/cpalaka/chanfilter/master/images/letsgo.jpg) | ![output LETSGO](https://raw.githubusercontent.com/cpalaka/chanfilter/master/images/letsgo-line(100)-iter2000000-df=euclid.bmp)
+
 ## Explanation
 This program is my implementation of this simple image processing algorithm:
 - load an image (source image)
@@ -95,11 +97,11 @@ Flag for showing time taken by different functions in cfEngine. Simple profiler.
 
 ## Example Usage
 
-#### `./chanfilter inputpic.jpg -t lines 50 -i 1000000 -v`
+##### `./chanfilter inputpic.jpg -t lines 50 -i 1000000 -v`
 
-#### `./chanfilter inputpic.jpg -kv 25 -w`
+##### `./chanfilter inputpic.jpg -kv 25 -w`
 
-#### `./chanfilter inputpic.jpg -t rect 70 70 -i 1000000 -k 15 -w -d taxi`
+##### `./chanfilter inputpic.jpg -t rect 70 70 -i 1000000 -k 15 -w -d taxi`
 
 ## Examples
 Input:
