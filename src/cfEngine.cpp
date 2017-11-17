@@ -13,11 +13,12 @@ cfEngine::cfEngine() :
     useKmeansplus(false),
     writeToBMPDetailed(false),
     writeToBMPNumbered(false),
-    df(EUCLID)
+    df(EUCLID),
+    iskmeansSorted(false)
 {}
 
 void cfEngine::init(sf::Color initialFill) {
-    if(!inputpic.loadFromFile("../images/" + input_filename)) {
+    if(!inputpic.loadFromFile("images/" + input_filename)) {
         exit(1);
     }
     resolution = inputpic.getSize();
@@ -37,7 +38,7 @@ void cfEngine::init(sf::Color initialFill) {
 
 bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
     //Handle command line options
-    //filename -v(isual)/not -t line/circle/polygon/sprite number -i(terations) number(-1 for infinity) -d(istance) taxi/euclid/inverse(default euclid) -AABB(if not, then perpixel) -k/v/+ num_clusters(do kmeans) -w(output file)
+    //filename -v(isual)/not -t line/circle/polygon/sprite number -i(terations) number(-1 for infinity) -d(istance) taxi/euclid/inverse(default euclid) -AABB(if not, then perpixel) -k/v/+ num_clusters(do kmeans) -w(output file) -p (profile code and show results)
     bool toption = false;
     bool distanceMetricSpecified = false;
     if(argc <= 1) {
@@ -113,11 +114,9 @@ bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
                             distanceIsInversed = true;
                         } else
                         if(argv[args+1][0] == 'c') {
-                            //dfn == util::euclideanDistanceInverse; << TODO:implement
                             df = COSINE;
                         }else 
                         if(argv[args+1][0] == 'j') {
-                            //dfn == util::euclideanDistanceInverse; << TODO:implement
                             df = JACCARD;
                         }else {
                             std::cout<<"Options error.\n";
@@ -159,6 +158,11 @@ bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
                         writeToBMPNumbered = true;
 
                     }
+                    case 'h':
+                    {
+                        printUsage();
+                        return 0;
+                    }
                     default:
                     {
                         std::cout<<"Option doesn't exist. Yet.\n";
@@ -190,15 +194,20 @@ void cfEngine::printUsage() {
 }
 
 std::vector<sf::Color> cfEngine::getUniqueColorsFromImage() {
-    std::vector<sf::Color> colorvec;  
+    std::vector<sf::Color> colorvec;
+    std::set<util::Color> uniquecolorset;
+
     for(int i = 0; i < inputpic.getSize().x; ++i) {
         for(int j = 0; j < inputpic.getSize().y; ++j) {
-           colorvec.push_back(inputpic.getPixel(i, j));
+            uniquecolorset.insert(util::Color(inputpic.getPixel(i, j)));
         }
     }
-        
-    auto del_repeats = std::unique(colorvec.begin(), colorvec.end(), [](auto a, auto b){ return a == b;});
-    return std::vector<sf::Color>(colorvec.begin(), del_repeats);
+    
+    for(const auto &i: uniquecolorset) {
+        colorvec.push_back(sf::Color(i.r, i.g, i.b));
+    }
+    
+    return colorvec;
 }
 
 void cfEngine::algo_loop() {
@@ -289,20 +298,42 @@ void cfEngine::algo_loop() {
 void cfEngine::runAlgo() {
     //test
     if(useKmeans) {
+
+        util::Timer t;
+        t.start();
+
         kmeans();
-        if(showKMeansResult) showKmeansResult();
+
+        double t_elapsed = t.stop();
+        std::cout<<"Kmeans took "<<t_elapsed/1000000<<" milliseconds.\n";
+
+        assert(num_clusters == kmeansColors.size());
+        if(showKMeansResult) {
+            showKmeansResult();
+            saveKmeansOutputToFile();
+        }
     }
 
     if(visualMode) {
         render_loop();
     } else {
+        util::Timer t;
+        
         //loop
         if(num_of_iter != INT_MAX) {
             int count = 0;
+
+            t.start();
+
             while(count < num_of_iter) {
                 algo_loop();
                 count++;
             }
+
+            double t_elapsed = t.stop();
+            std::cout<<"Algo("<<num_of_iter<<") took "<<t_elapsed/1000000000<<" seconds.\n";
+
+
             render_pixelArray();
         }
     }
@@ -331,6 +362,35 @@ void cfEngine::savePixelArrayToFile() {
     }
 
     std::string outfile_name = generateDetailedOutputString();
+    output.WriteToFile(outfile_name.c_str());
+}
+
+void cfEngine::saveKmeansOutputToFile() {
+    int widthperColor = 30;//in pixels
+    int height = 200;
+    if(kmeansColors.empty()) {
+        std::cout<<"error: Kmeans segmentation not specified. Nothing to draw.\n";
+        return;
+    }
+    sortColorVector(kmeansColors);
+
+    BMP output;
+    output.SetSize(widthperColor*num_clusters, height);
+    output.SetBitDepth(32);
+
+    for(int c = 0; c < num_clusters; ++c) {
+        sf::Color col = kmeansColors[c];
+        for(int i = widthperColor*c; i < widthperColor*c + widthperColor; ++i) {
+            for(int j = 0; j < height; ++j) {
+                output(i, j)->Red = col.r;
+                output(i,j)->Green = col.g;
+                output(i,j)->Blue = col.b;
+                output(i,j)->Alpha = 255;
+            }
+        }
+    }
+
+    std::string outfile_name = "output/" + input_filename + " k=" + std::to_string(num_clusters) + ".jpg";
     output.WriteToFile(outfile_name.c_str());
 }
 
@@ -370,7 +430,7 @@ std::string cfEngine::generateDetailedOutputString() {
     if(useKmeans) {
         kmeansstr = "k="+ std::to_string(num_clusters);
     }
-    const std::string string = "../output/"+input_filename+"-"+type+"("+ std::to_string(max_line_length) +")-iter"+ std::to_string(num_of_iter)+"-"+kmeansstr+"df="+dist_measure+".bmp";
+    const std::string string = "output/"+input_filename+"-"+type+"("+ std::to_string(max_line_length) +")-iter"+ std::to_string(num_of_iter)+"-"+kmeansstr+"df="+dist_measure+".bmp";
     return string;
 }
 
@@ -405,8 +465,10 @@ void cfEngine::constructLine_naive(int x1, int y1, int x2, int y2, sf::Color col
     }
 }
 
-void cfEngine::constructLine_bresenham() {
-
+void cfEngine::constructLine_bresenham(int x0, int y0, int x1, int y1, sf::Color color) {
+    float deltax = x1 - x0;
+    float deltay = y1 - y0;
+    float deltaerr = abs(deltay/deltax);
 }
 
 //do the distance measure with pixels in the AABB bounding box. mainly for testing and curiosity
@@ -537,7 +599,7 @@ void cfEngine::kmeans() {
         
         //break out of loop if it converges
         if(temp == means) {
-            std::cout<<"Broke out of loop at iter: "<<iter<<"\n";
+            //std::cout<<"Broke out of loop at iter: "<<iter<<"\n";
             break;
         } else {
             means = std::vector<sf::Color>(temp);
@@ -583,13 +645,34 @@ void cfEngine::showKmeansResult() {
 }
 
 void cfEngine::sortColorVector(std::vector<sf::Color>& vec) {
+    if(iskmeansSorted) {
+        //std::cout<<"error: Kmeans Color Vector is already sorted.\n";
+        return;
+    } else {
+        iskmeansSorted = true;
+
+    }
     std::vector<util::HSL> colors;
 
     for(const auto& i: vec) {
         colors.push_back(rgbToHsl(i));
     }
 
-    std::sort(colors.begin(), colors.end(), [](util::HSL a, util::HSL b) { return a.h < b.h ;});
+    /*
+    std::cout<<"HSL kmeans-\n";
+    int x = 0;
+    for(const auto& c: colors) {
+        std::cout<<x<<". H="<<c.h<<" S="<<c.s<<" L="<<c.l<<"\t"<<"R="<<(int)kmeansColors[x].r<<" G="<<(int)kmeansColors[x].g<<" B="<<(int)kmeansColors[x].b<<"\n";
+        x++;
+    }
+    */
+    std::sort(colors.begin(), colors.end(), [](util::HSL a, util::HSL b) { 
+        if(a.s == b.l && a.s == b.s) {
+            return a.h < b.h ;
+        } else {
+            return (a.l > b.l);
+        }
+    });
     std::vector<sf::Color> sortedRGB;
 
     for(int i = 0; i<colors.size(); ++i) {
@@ -605,10 +688,11 @@ util::HSL cfEngine::rgbToHsl(sf::Color c) {
     static int i = 0;
     float r = (float)c.r/255, g = (float)c.g/255, b = (float)c.b/255;
 
-    std::vector<float> v({(float)c.r/255, (float)c.g/255, (float)c.b/255});
+    std::vector<float> v({r, g, b});
     std::sort(v.begin(), v.end());
     float max = v[2]; 
     float min = v[0];
+
     float h = (max + min)/2;
     float s = h;
     float l = h;
@@ -620,12 +704,40 @@ util::HSL cfEngine::rgbToHsl(sf::Color c) {
       float d = max - min;
       s = (l > 0.5) ? d / (2 - max - min) : d / (max + min);
 
-      if(max == r) h = (g - b) / d + (g < b ? 6 : 0);
-      else if(max == g) h = (b - r) / d + 2;
-      else if(max == b) h = (r - g) / d + 4;
-      h /= 6;
+      if(max == r)      h = ((g - b) / d) + ( (g < b) ? 6 : 0);
+      else if(max == g) h = ((b - r) / d) + 2.0;
+      else if(max == b) h = ((r - g) / d) + 4.0;
+      h = h/6;
     }
-    util::HSL result(h * 360, s * 100, l * 100, i);
+
+    util::HSL result(h, s, l, i);
     i++;
     return result;
+}
+
+sf::Color cfEngine::hslToRgb(util::HSL hsl) {
+    float r, g, b;
+
+    if(hsl.s == 0) {
+        r = hsl.l;
+        g = hsl.l;
+        b = hsl.l;
+    } else {
+        float q = (hsl.l < 0.5) ? (hsl.l * (1 + hsl.s)) : (hsl.l + hsl.s - (hsl.l*hsl.s));
+        float p = (2* hsl.l - q);
+        r = hueToRgb(p, q, hsl.h + 1/3);
+        g = hueToRgb(p, q, hsl.h);
+        b = hueToRgb(p, q, hsl.h - 1/3);
+    }
+
+    return sf::Color(std::round(r*255), std::round(g*255), std::round(b*255));
+}
+
+float cfEngine::hueToRgb(float p, float q, float t) {
+    if(t < 0) t += 1;
+    if(t > 1) t -= 1;
+    if(t < 1/6) return p + (q - p) * 6 * t;
+    if(t < 1/2) return q;
+    if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
 }

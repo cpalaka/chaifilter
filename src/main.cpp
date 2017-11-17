@@ -10,29 +10,12 @@
  * 
  */
 
-//TODO: profile entire code and see what is slowing things down so much
-//TODO: implement more distance functions -> implement cosine similarity and jaccard similarity
-//TODO:
-
-//NOTE: it could be worth multithreading this
-
+//TODO: implement cosine similarity
 //TODO: think about how i can write about this stuff in a blog post(or multiple) for example, line algo - SFML - setup in vscode, etc
-
-//TODO: add more shapes that can be drawn
-
-/*NOTE: when doing kmeans to segment colors, instead of getting only the k colors, add
-*       a proportional number of that color with respect to its size (cluster size)
-*/
-
-//TODO: add feature where not only can you make the image out of shapes, but other images
-
-//TODO: lines, polygons, circles,etc
+//TODO: add more shapes: (solid fill)circles, squares --- sprites
 //TODO: implememt bresenhams algo
-    //TODO: implement xiaolin wu algo
-
-//TODO: add timer to see how long each algo is taking
+//TODO: check to see if image and output directories exist
  
-
 #include "cfEngine.h"
 #include "PixelArray.h"
 #include "Util.h"

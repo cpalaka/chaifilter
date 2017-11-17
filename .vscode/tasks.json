@@ -22,7 +22,7 @@
                 "-std=c++17",
                 "-g",
                 "-o",
-                "bin/chanfilter"
+                "chanfilter"
             ],
             "group": {
                 "kind": "build",

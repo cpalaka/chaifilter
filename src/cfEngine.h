@@ -8,7 +8,10 @@
 #include <cassert>
 #include <vector>
 #include <unordered_map>
+#include <set>
+#include <unordered_set>
 #include <cstring>
+#include <cstdint>
 #include <cstdlib>
 #include <cstdio>
 #include <climits>
@@ -54,11 +57,12 @@ private:
     void render_pixelArray();
 
     void savePixelArrayToFile();
+    void saveKmeansOutputToFile();
     std::string generateDetailedOutputString();
 
     //Line drawing algos
     void constructLine_naive(int x1, int y1, int x2, int y2, sf::Color color);
-    void constructLine_bresenham();
+    void constructLine_bresenham(int x1, int y1, int x2, int y2, sf::Color color);
 
     void showKmeansResult();
     //AABB is a LOT slower
@@ -71,6 +75,8 @@ private:
     //sort color vector by hue
     void sortColorVector(std::vector<sf::Color>& vec);
     util::HSL rgbToHsl(sf::Color c);
+    sf::Color hslToRgb(util::HSL hsl);
+    float hueToRgb(float p, float q, float t);
 
     inline void drawGraphic(bool flag = false) {
         for(const auto& i: pixBuffer) {
@@ -114,6 +120,7 @@ private:
     //Option flags
     bool distanceIsInversed;
     bool useAABBToCompare;
+    bool iskmeansSorted;
     bool visualMode;
     bool useKmeans;
     bool showKMeansResult;

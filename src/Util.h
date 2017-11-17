@@ -3,8 +3,23 @@
 
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <cstdint>
+#include <chrono>
+typedef std::chrono::high_resolution_clock Clock;
 
 namespace util {
+
+struct Timer {
+    Timer() { };
+    inline void start() {
+        a = Clock::now();
+    }
+    inline double stop() {
+        //b = Clock::now();
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now() - a).count();
+    }
+    std::chrono::time_point<Clock, std::chrono::nanoseconds> a;
+};
 
 //Object to represent a pixel in a PixelArray (position + color)
 struct pix {
@@ -23,14 +38,31 @@ struct HSL {
     int id;
 };
 
+struct Color {
+    Color(uint8_t _r, uint8_t _g, uint8_t _b) : r(_r), g(_g), b(_b) {};
+    Color(sf::Color c) : r((uint8_t)c.r), g((uint8_t)c.g), b((uint8_t)c.b) {};
+    inline friend bool operator ==(const util::Color &a, const util::Color &b);
+    inline friend bool operator <(const util::Color &a, const util::Color &b);
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+};
 
 inline bool operator ==(const util::pix &a, const util::pix &b) {
     return ( (a.loc == b.loc) && (a.c == b.c));
 }
 
+inline bool operator ==(const util::Color &a, const util::Color &b) {
+    return ( (a.r == b.r) && (a.g == b.g) == (a.b == b.b) );
+}
+
+inline bool operator <(const util::Color &a, const util::Color &b) {
+    return ( (int)a.r + a.g + a.b < (int)b.r + b.g + b.b );
+}
+
 inline float Q_rsqrt( float number );
 inline float euclideanDistance(const sf::Vector2u p1, const sf::Vector2u p2);
-inline float euclideanDistanceInverse(const sf::Color c1, const sf::Color c2);//NOTE:currently not working
+inline float euclideanDistanceInverse(const sf::Color c1, const sf::Color c2);//NOTE: not functional
 inline float euclideanDistanceSquared(const sf::Color c1, const sf::Color c2);
 inline float taxiCabDistance(const sf::Color c1, const sf::Color c2);
 
@@ -39,7 +71,6 @@ inline float euclideanDistance(const sf::Vector2u p1, const sf::Vector2u p2) {
 }
 
 inline float euclideanDistanceInverse(const sf::Color c1, const sf::Color c2) {
-    //NOTE: lets try kicking out the alpha part - keep it strictly RGB
     return  util::Q_rsqrt(((float)c1.r-c2.r)*((float)c1.r-c2.r) + ((float)c1.g-c2.g)*((float)c1.g-c2.g) + ((float)c1.b-c2.b)*((float)c1.b-c2.b));
 }
 
