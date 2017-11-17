@@ -33,7 +33,7 @@ Keep the desired input images in the `images` folder and then execute chaiFilter
 
 #### Command Line Options
 
-##### -t GraphicType arg1 arg2.. 
+* **`-t GraphicType arg1 arg2..`**
 *GraphicType*:string
 * `line`
     1. *arg1*:integer - Maximum line length
@@ -46,23 +46,23 @@ Keep the desired input images in the `images` folder and then execute chaiFilter
     1. *coming soon*
 >blank arguments will cause errors
 
-##### -i numberOfIterations
+* -i numberOfIterations
 *numberOfIterations*:integer
 >Omit in visual mode for an infinite render loop
 
-##### -v
+* -v
 Flag for `visual mode` or continuous rendering of the algorithm output onto a window.
 >Warning: takes a long time
 
-##### -d distanceFunction
+* -d distanceFunction
 *distanceFunction*:string
 * `euclideanDistance`
 * `taxiCabDistance`
 
-##### -AABB
+* -AABB
 Flag for using an AABB box to compare pixels instead of per-pixel. **Not recommended.**
 
-##### -k.. numberOfClusters
+* -k.. numberOfClusters
 Use this option to do the chaiFilter algorithm with only *numberOfClusters* most important colors instead of all unique colors. This is implemented in the standard way - kmeans clustering.
 
 * `k`: do kmeans with k=numberOfClusters
@@ -71,10 +71,10 @@ Use this option to do the chaiFilter algorithm with only *numberOfClusters* most
 
 *numberOfClusters*:integer
 
-##### -w
+* -w
 Flag for outputting the result as a bmp file in `outputs/`.
 
-##### -p
+* -p
 Flag for showing time taken by different functions in cfEngine. Simple profiler.
 >Not implemented yet.
 
