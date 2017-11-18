@@ -7,7 +7,7 @@
 #include <cmath>
 #include <cassert>
 #include <vector>
-#include <unordered_map>
+#include <map>
 #include <set>
 #include <unordered_set>
 #include <cstring>
@@ -56,27 +56,33 @@ private:
     void algo_loop();
     void render_pixelArray();
 
+
     void savePixelArrayToFile();
     void saveKmeansOutputToFile();
+
     std::string generateDetailedOutputString();
 
     //Line drawing algos
     void constructLine_naive(int x1, int y1, int x2, int y2, sf::Color color);
     void constructLine_bresenham(int x1, int y1, int x2, int y2, sf::Color color);
 
-    void showKmeansResult();
     //AABB is a LOT slower
     long double measureAverageDistance_AABB(int id, sf::Rect<int> area);
     float measureAverageDistance_perPixel(int id);//id = 1 for with line, id = 0 for without
     
     //run kmeans algo on availableColors and output to kmeansColors
     void kmeans();
+    void showKmeansResult();
+    std::vector<sf::Color> doKmeansPlus();
 
     //sort color vector by hue
     void sortColorVector(std::vector<sf::Color>& vec);
     util::HSL rgbToHsl(sf::Color c);
     sf::Color hslToRgb(util::HSL hsl);
     float hueToRgb(float p, float q, float t);
+
+    double callProfiler(std::string s);
+    void profilerOutput();
 
     inline void drawGraphic(bool flag = false) {
         for(const auto& i: pixBuffer) {
@@ -104,9 +110,10 @@ private:
     sf::Vector2u resolution;
     GraphicType graphicType;
     distFunc df;
-
+    //util::Timer t;
     int num_of_iter;
 
+    std::map<std::string, double> profileResults;
     std::vector<struct util::pix> pixBuffer, pixBufferTemp;
 
     //GraphicType=Line settings
@@ -127,6 +134,7 @@ private:
     bool useKmeansplus;
     bool writeToBMPDetailed;
     bool writeToBMPNumbered;
+    bool profileCode;
     int num_clusters;//k
 };
 

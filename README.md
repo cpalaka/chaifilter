@@ -34,6 +34,11 @@ The only installation instruction is to create two folders at the same directory
 Keep the desired input images in the `images` folder and then execute chaiFilter on your favorite commandline.
 
 #### Command Line Options
+
+* **`-h`**
+
+    The help command. Use this to display all the options in your command line.
+
 * **`Full Image Name`**
 
     >example: inputpic.jpg
@@ -84,8 +89,9 @@ Keep the desired input images in the `images` folder and then execute chaiFilter
     Use this option to do the chaiFilter algorithm with only *numberOfClusters* most important colors instead of all unique colors. This is implemented in the standard way - kmeans clustering.
 
     * `k`: do kmeans with k=numberOfClusters
+    * `k+` : do kmeans with k=numberOfClusters and initialize with kmeans++
     * `kv`: do kmeans with k=numberOfClusters and render in window
-    * `kv+`: do kmeans with k=numberOfClusters and render in window with kmeans++ algo for initialization
+    * `kv+` / `k+v`: do kmeans with k=numberOfClusters and render in window with kmeans++ algo for initialization
 
 * **`-w`**
 

@@ -14,10 +14,15 @@ cfEngine::cfEngine() :
     writeToBMPDetailed(false),
     writeToBMPNumbered(false),
     df(EUCLID),
-    iskmeansSorted(false)
+    iskmeansSorted(false),
+    profileCode(false)
 {}
 
 void cfEngine::init(sf::Color initialFill) {
+    if(profileCode) {
+        callProfiler("init");
+    }
+
     if(!inputpic.loadFromFile("images/" + input_filename)) {
         exit(1);
     }
@@ -34,6 +39,13 @@ void cfEngine::init(sf::Color initialFill) {
     std::cout<<"Image size: "<<resolution.x<<" x "<<resolution.y<<"\n";
     std::cout<<"Total number of pixels = "<<resolution.x*resolution.y<<"\n";
     std::cout<<"Size of availableColors: "<<availableColors.size()<<"\n";
+
+    if(profileCode) profileResults.insert(std::pair<std::string, double>("init", callProfiler("init")));
+}
+
+double cfEngine::callProfiler(std::string s) {
+    static util::Timer t;
+    return t.trigger()/1000000;//returns milliseconds
 }
 
 bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
@@ -141,9 +153,12 @@ bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
                         useKmeans = true;
                         if(strlen(argv[args]) == 3) {
                             if(argv[args][2] == 'v') showKMeansResult = true; // for option -kv (kmeans visual)
-                            if(argv[args][2] == '+') useKmeansplus = true; // for option -kv (kmeans visual)
+                            if(argv[args][2] == '+') useKmeansplus = true; // for option -k+ (kmeans+ no visual)
                         }
-                        if(strlen(argv[args]) == 4) useKmeansplus = true; // for option -kv+
+                        else if(strlen(argv[args]) == 4) { 
+                            useKmeansplus = true; // for option -kv+ (kmeans+ visual)
+                            showKMeansResult = true;
+                        }
                         num_clusters = atoi(argv[args+1]);
                         args++;
                         break;
@@ -155,13 +170,18 @@ bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
                     }
                     case 'o':
                     {
-                        writeToBMPNumbered = true;
+                        writeToBMPNumbered = true; //TODO: use this for animations/gifs
 
                     }
                     case 'h':
                     {
                         printUsage();
                         return 0;
+                    }
+                    case 'p':
+                    {
+                        profileCode = true;
+                        break;
                     }
                     default:
                     {
@@ -298,15 +318,7 @@ void cfEngine::algo_loop() {
 void cfEngine::runAlgo() {
     //test
     if(useKmeans) {
-
-        util::Timer t;
-        t.start();
-
         kmeans();
-
-        double t_elapsed = t.stop();
-        std::cout<<"Kmeans took "<<t_elapsed/1000000<<" milliseconds.\n";
-
         assert(num_clusters == kmeansColors.size());
         if(showKMeansResult) {
             showKmeansResult();
@@ -316,30 +328,31 @@ void cfEngine::runAlgo() {
 
     if(visualMode) {
         render_loop();
-    } else {
-        util::Timer t;
-        
+    } else {  
+        if(profileCode) callProfiler("algo");
         //loop
         if(num_of_iter != INT_MAX) {
             int count = 0;
-
-            t.start();
-
             while(count < num_of_iter) {
                 algo_loop();
                 count++;
             }
-
-            double t_elapsed = t.stop();
-            std::cout<<"Algo("<<num_of_iter<<") took "<<t_elapsed/1000000000<<" seconds.\n";
-
-
             render_pixelArray();
         }
+        if(profileCode) profileResults.insert(std::pair<std::string, double>("algo", callProfiler("algo")));
     }
 
     if(writeToBMPDetailed) {
         savePixelArrayToFile();
+    }
+
+    if(profileCode) profilerOutput();
+
+}
+
+void cfEngine::profilerOutput() {
+    for(const auto &i: profileResults) {
+        std::cout<<i.first<<": "<<i.second<<" seconds \n";
     }
 }
 
@@ -368,6 +381,8 @@ void cfEngine::savePixelArrayToFile() {
 void cfEngine::saveKmeansOutputToFile() {
     int widthperColor = 30;//in pixels
     int height = 200;
+    std::string kmeansType = " k=";
+
     if(kmeansColors.empty()) {
         std::cout<<"error: Kmeans segmentation not specified. Nothing to draw.\n";
         return;
@@ -389,8 +404,8 @@ void cfEngine::saveKmeansOutputToFile() {
             }
         }
     }
-
-    std::string outfile_name = "output/" + input_filename + " k=" + std::to_string(num_clusters) + ".jpg";
+    if(useKmeansplus) kmeansType = " k++=";
+    std::string outfile_name = "output/" + input_filename + kmeansType + std::to_string(num_clusters) + ".jpg";
     output.WriteToFile(outfile_name.c_str());
 }
 
@@ -428,7 +443,11 @@ std::string cfEngine::generateDetailedOutputString() {
             break;
     }
     if(useKmeans) {
-        kmeansstr = "k="+ std::to_string(num_clusters);
+        if(useKmeansplus) {
+            kmeansstr = "k++="+ std::to_string(num_clusters);
+        } else {
+            kmeansstr = "k="+ std::to_string(num_clusters);
+        }
     }
     const std::string string = "output/"+input_filename+"-"+type+"("+ std::to_string(max_line_length) +")-iter"+ std::to_string(num_of_iter)+"-"+kmeansstr+"df="+dist_measure+".bmp";
     return string;
@@ -550,8 +569,9 @@ void cfEngine::kmeans() {
     std::vector<std::pair<sf::Color, int> > _ksets;
 
     if(useKmeansplus) {
-        //TODO:use kmeans+ algo to initialize points
-
+        if(profileCode) callProfiler("kmeansPlus");
+        means = doKmeansPlus();
+        if(profileCode) profileResults.insert(std::pair<std::string, double>("kmeansPlus", callProfiler("kmeansPlus"))); 
     } else {
         //randomly initialize points
         for(int i = 0; i < num_clusters; ++i) {
@@ -559,6 +579,7 @@ void cfEngine::kmeans() {
         }
     }
     
+    if(profileCode) callProfiler("kmeans");
     int iter = 0;
     while(iter < kmeans_max_iter) {
         //assign each color to its closest kmeans color
@@ -608,12 +629,57 @@ void cfEngine::kmeans() {
         iter++;
         _ksets.clear();
     }
+    if(profileCode) profileResults.insert(std::pair<std::string, double>("kmeans", callProfiler("kmeans")));
     //store calculated means to kmeansColors
     kmeansColors = std::vector<sf::Color>(means);
 }
 
+std::vector<sf::Color> cfEngine::doKmeansPlus() {
+    std::vector<sf::Color> result;
+    sf::Color initial = availableColors[rand()%availableColors.size()];
+    int count = 0;
+
+    while(count < num_clusters) {
+        std::vector<float> distances;
+        sf::Color nearestCenter;
+
+        float sum = 0;
+        for(int i = 0; i < availableColors.size(); ++i) {
+            //get the nearest center which is already found
+            if(result.empty()) { nearestCenter = initial; }
+            else {
+                float lowestDist = FLT_MAX;
+                for(const auto &c: result) {
+                    float d = util::euclideanDistanceSquared(c, availableColors[i]);
+                    if( d < lowestDist) {
+                        lowestDist = d;
+                        nearestCenter = c;
+                    }
+                }
+            }
+
+            sum += util::euclideanDistanceSquared(nearestCenter, availableColors[i]);
+            distances.push_back(sum);
+        }
+
+        float sample = rand()%(int)sum;
+        int index = 0;
+        assert(availableColors.size() == distances.size());
+        for(const auto &i: distances) {
+            if(i > sample) break;
+            index++;
+        }
+        result.push_back(availableColors[index]);
+        count++;
+    }
+    assert(result.size() == num_clusters);
+    return result;
+}
+
 void cfEngine::showKmeansResult() {
-    sf::RenderWindow window(sf::VideoMode(1000, 300), "kMeans Result");
+    std::string kmeansType = "kMeans Result";
+    if(useKmeansplus) kmeansType = "kMeans++ Result";
+    sf::RenderWindow window(sf::VideoMode(1000, 300), kmeansType);
     std::vector<sf::RectangleShape> color_rects;
 
     //sort the vector by hue so it looks nice

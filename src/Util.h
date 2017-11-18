@@ -10,16 +10,16 @@ typedef std::chrono::high_resolution_clock Clock;
 namespace util {
 
 struct Timer {
-    Timer() { };
-    inline void start() {
+    Timer() { a = Clock::now(); };
+    inline double trigger() {
+        auto old = a;
         a = Clock::now();
-    }
-    inline double stop() {
-        //b = Clock::now();
-        return std::chrono::duration_cast<std::chrono::nanoseconds>(Clock::now() - a).count();
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(a - old).count();
     }
     std::chrono::time_point<Clock, std::chrono::nanoseconds> a;
+    void* data;//used to identify timers TODO: implement later
 };
+
 
 //Object to represent a pixel in a PixelArray (position + color)
 struct pix {
