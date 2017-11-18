@@ -13,6 +13,7 @@
                 "src/easybmp/EasyBMP.o",
                 "-I\"D:/Code/C++/lib/SFML-2.4.2/include\"",
                 "-L\"D:/Code/C++/lib/SFML-2.4.2/lib\"",
+                "-L\"/lib\"",
                 "-lsfml-graphics",
                 "-lsfml-window",
                 "-lsfml-system",
