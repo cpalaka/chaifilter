@@ -20,9 +20,9 @@
                 "-pipe",
                 "-fomit-frame-pointer",
                 "-std=c++17",
-                "-static-libgcc",
-                "-static-libstdc++",
-                "-static",
+                //"-static-libgcc",
+                //"-static-libstdc++",
+                //"-static",
                 "-g",
                 "-o",
                 "chanfilter"
