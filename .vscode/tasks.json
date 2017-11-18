@@ -20,6 +20,8 @@
                 "-pipe",
                 "-fomit-frame-pointer",
                 "-std=c++17",
+                "-static-libgcc",
+                "-static-libstdc++",
                 "-g",
                 "-o",
                 "chanfilter"
