@@ -28,7 +28,9 @@ Build the executable in Visual Studio Code by following these instructions -
 This will allow you to press Ctrl+Shift+B in your Visual Studio Code editor to automatically build your executable in your directory.
 
 ## Installation
-The only installation instruction is to create two folders at the same directory level as the final executable named - `images` and `output`.
+
+Download this repo and extract it somewhere.
+Run install.bat.
 
 ## Usage
 Keep the desired input images in the `images` folder and then execute chaiFilter on your favorite commandline.

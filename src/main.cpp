@@ -11,10 +11,8 @@
  */
 
 //TODO: implement cosine similarity
-//TODO: think about how i can write about this stuff in a blog post(or multiple) for example, line algo - SFML - setup in vscode, etc
 //TODO: add more shapes: (solid fill)circles, squares --- sprites
 //TODO: implememt bresenhams algo
-//TODO: check to see if image and output directories exist
  
 #include "cfEngine.h"
 #include "PixelArray.h"
