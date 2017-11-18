@@ -22,6 +22,7 @@
                 "-std=c++17",
                 "-static-libgcc",
                 "-static-libstdc++",
+                "-static",
                 "-g",
                 "-o",
                 "chanfilter"
