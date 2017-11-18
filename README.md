@@ -34,6 +34,11 @@ Run install.bat.
 
 ## Usage
 Keep the desired input images in the `images` folder and then execute chaiFilter on your favorite commandline.
+Currently only supports windows and tested on Powershell and command prompt.
+
+To execute:
+* Powershell - `./chaifilter ...`
+* Command Prompt - `chaifilter.exe ...`
 
 #### Command Line Options
 
