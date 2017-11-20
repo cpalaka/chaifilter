@@ -50,22 +50,33 @@ To execute:
 
     >example: inputpic.jpg
 
-* **`-t GraphicType arg1 arg2..`**
+* **`-t GraphicType arg1`**
 
     ##### **GraphicType**:*string*
     * `line`
         - **arg1**:*integer* - Maximum line length
     * `circle`
         - **arg1**:*integer* - Maximum circle radius
-    * `rect`
-        - **arg1**:*integer* - Maximum rectangle width
-        - **arg2**:*integer* - Maximum rectangle height
-    * `sprite`
-        - *coming soon*
 
     >blank arguments will cause errors
+    >use `-t` twice with both line and circle parameters for a mix of circles and lines
     
     >examples: `-t line 50`, `-t rect 100 40`
+
+* **`-m lineToCircle outlineToFill`**
+    Used to control level of mixing between lines and circles and circle outlines and filled circles.
+
+    ##### **lineToCircle**:*integer*
+        - number between 0-100 controlling amount of lines.
+        >setting this to 100 will produce only lines
+
+    ##### **outlineToFill**:*integer*
+        - number between 0-100 controlling amount of outlined circles.
+        > lower yields more filled
+
+* **`-f`**
+
+    Use filled shapes.
 
 * **`-i numberOfIterations`**
 
@@ -84,6 +95,8 @@ To execute:
     ##### **distanceFunction**:*string*
         * `euclideanDistance`
         * `taxiCabDistance`
+
+    >Defaults to euclidean distance.
 
 * **`-AABB`**
 
@@ -116,6 +129,15 @@ Flag for showing time taken by different functions in cfEngine. Simple profiler.
 ##### `./chanfilter inputpic.jpg -kv 25 -w`
 
 ##### `./chanfilter inputpic.jpg -t rect 70 70 -i 1000000 -k 15 -w -d taxi`
+
+## How to read output files
+
+You may have noticed that the output bmp file names detail the specific parameters of the algorithm used. It should be fairly easy to interpret, however, to make things clear:
+* df - distance function
+* iter - number of iterations
+* line(n) - lines with max line length of n
+* circle(n) - circles with max radius of n
+* mixed(x,y) - mix of lines and circles with line to circle ratio set to x and outlined circle to filled circle ratio set to y
 
 ## Examples
 

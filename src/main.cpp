@@ -1,18 +1,12 @@
 /*
- *      CHAN FILTER 
- *          -a work by Chaitanya Palaka, inspired by 4chan's gentoomen
- * 
- * 
+ *      CHAI FILTER 
+ *          -a work by Chaitanya Palaka
  * 
  *  What it is:
  *      - an image approximation algorithm using randomly drawn shapes/textures
- * 
+ *      - check out readme for further information
  * 
  */
-
-//TODO: implement cosine similarity
-//TODO: add more shapes: (solid fill)circles, squares --- sprites
-//TODO: implememt bresenhams algo
  
 #include "cfEngine.h"
 #include "PixelArray.h"
@@ -20,12 +14,19 @@
 
 int main(const int argc, const char* argv[]) {
     srand(time(0)); 
-
     cfEngine cf;
+
+    //Setup critical parameters before calling init. 
+    //Engine configuration via command line options is MANDATORY.
     if(!cf.configureEngineSettings(argc, argv)) {
         exit(1);
     }
+
+    //initialize the engine and run the algorithm
     cf.init(sf::Color::Black);
     cf.runAlgo();
+
+    //??????
+    //Profit!
     return 0;
 }

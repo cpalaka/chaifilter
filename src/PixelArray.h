@@ -15,6 +15,7 @@
 #include <SFML/Window.hpp>
 
 //Pixel only representation of image/texture meant to work with SFML
+//Origin is located at top-left corner
 class PixelArray {
 public:
     // Constructors
@@ -26,6 +27,7 @@ public:
         
     PixelArray(sf::Vector2u size, sf::Color color = sf::Color::White) : PixelArray(size.x, size.y, color){};
 
+    // Operator overloads
     inline PixelArray & operator =(const PixelArray& toCopy) {
         if(this == &toCopy) return *this;
         xdim = toCopy.xdim;
@@ -52,7 +54,6 @@ public:
     inline std::vector<sf::Color>& getColorVector() { return arr; }
     inline int getPixelArraySizeX() const { return xdim; };
     inline int getPixelArraySizeY() const { return ydim; };
-    
 private:
     //Member Data
     std::vector<sf::Color> arr;
@@ -63,5 +64,4 @@ private:
 inline bool operator ==(const PixelArray &p1, const PixelArray &p2) {
     return ( (p1.arr == p2.arr) && (p1.xdim == p2.xdim) && (p1.ydim == p2.ydim));
 }
-
 #endif//__PIXEL_ARRAY_H__

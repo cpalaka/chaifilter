@@ -1,6 +1,8 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
 
+// Utility class used by the chaifilter Engine
+
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <cstdint>
@@ -9,27 +11,28 @@ typedef std::chrono::high_resolution_clock Clock;
 
 namespace util {
 
+//Timer object used for profiling code
 struct Timer {
     Timer() { a = Clock::now(); };
     inline double trigger() {
-        auto old = a;
+        std::chrono::time_point<Clock, std::chrono::nanoseconds> old = a;
         a = Clock::now();
         return std::chrono::duration_cast<std::chrono::nanoseconds>(a - old).count();
     }
     std::chrono::time_point<Clock, std::chrono::nanoseconds> a;
-    void* data;//used to identify timers TODO: implement later
+    //void* data;//used to identify timers TODO: implement later
 };
 
-
-//Object to represent a pixel in a PixelArray (position + color)
+//Pixel object - specifies location and color
 struct pix {
     pix(sf::Vector2u position, sf::Color color) : loc(position), c(color) {};
     sf::Vector2u loc;
     sf::Color c;
     inline friend bool operator ==(const util::pix &a, const util::pix &b);
+    inline friend bool operator <(const util::pix &a, const util::pix &b);
 };
 
-//used to sort the colors by hue
+//HSL color object
 struct HSL {
     HSL(float _h, float _s, float _l, int _id) : h(_h), s(_s), l(_l), id(_id) {};
     float h;
@@ -38,26 +41,32 @@ struct HSL {
     int id;
 };
 
+//RGBA color object 
 struct Color {
-    Color(uint8_t _r, uint8_t _g, uint8_t _b) : r(_r), g(_g), b(_b) {};
-    Color(sf::Color c) : r((uint8_t)c.r), g((uint8_t)c.g), b((uint8_t)c.b) {};
+    Color(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a) : r(_r), g(_g), b(_b), a(_a) {};
+    Color(sf::Color c) : r((uint8_t)c.r), g((uint8_t)c.g), b((uint8_t)c.b), a((uint8_t)c.a) {};
     inline friend bool operator ==(const util::Color &a, const util::Color &b);
     inline friend bool operator <(const util::Color &a, const util::Color &b);
     uint8_t r;
     uint8_t g;
     uint8_t b;
+    uint8_t a;
 };
 
 inline bool operator ==(const util::pix &a, const util::pix &b) {
     return ( (a.loc == b.loc) && (a.c == b.c));
 }
 
+inline bool operator <(const util::pix &a, const util::pix &b) {
+    return ( (a.loc.x < b.loc.x || a.loc.y < b.loc.y));
+}
+
 inline bool operator ==(const util::Color &a, const util::Color &b) {
-    return ( (a.r == b.r) && (a.g == b.g) == (a.b == b.b) );
+    return ( (a.r == b.r) && (a.g == b.g) && (a.b == b.b) && (a.a == b.a));
 }
 
 inline bool operator <(const util::Color &a, const util::Color &b) {
-    return ( (int)a.r + a.g + a.b < (int)b.r + b.g + b.b );
+    return ( (int)a.r + a.g + a.b + a.a < (int)b.r + b.g + b.b + b.a);
 }
 
 inline float Q_rsqrt( float number );
