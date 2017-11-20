@@ -54,7 +54,7 @@ struct Color {
 };
 
 inline bool operator ==(const util::pix &a, const util::pix &b) {
-    return ( (a.loc == b.loc) && (a.c == b.c));
+    return ((a.loc == b.loc));
 }
 
 inline bool operator <(const util::pix &a, const util::pix &b) {

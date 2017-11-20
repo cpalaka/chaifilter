@@ -102,9 +102,10 @@ bool cfEngine::configureEngineSettings(const int argc,const char* argv []) {
                                 if(graphicType == NONE) {
                                     graphicType = CIRCLE;
                                 } else {
-                                     isMixed = true;
+                                    isMixed = true;
                                 }
-                                max_radius = atoi(argv[args+2]);
+                                if(args+2 > argc-1 || argv[args+2][0] == '-') {std::cout<<"Options error.\n"; printUsage();exit(1);}
+                                else {max_radius = atoi(argv[args+2]);}
                                 args++;
                                 break;
                             }
@@ -247,7 +248,7 @@ void cfEngine::algo_loop() {
     sf::Rect<int> area;
 
     //2. Choose random graphic and construct it on pixelArray
-    if(!notDrawn && isMixed) {
+    if(isMixed && !notDrawn) {
         int selection = rand()%100;
         if(selection < lineToCircleRatio) {
             graphicType = LINE;
@@ -285,6 +286,7 @@ void cfEngine::algo_loop() {
         {
             int x = rand()%resolution.x;
             int y = rand()%resolution.y;
+            if(!isMixed) r = 2 + rand()%(max_radius-2);
             area = sf::Rect<int>(x-r, y-r, 2*r, 2*r);
             constructCircle(x, y, r, chosen);
             break;
@@ -307,7 +309,6 @@ void cfEngine::algo_loop() {
         } else {
             if(with > without) {
                 undoGraphic();
-
                 assert(pixelArray == temp);
             }
         }
@@ -353,12 +354,12 @@ void cfEngine::runAlgo() {
     } else {  
     //Run algorithm num_of_iter times profiling runtime
         if(num_of_iter != INT_MAX) {
-            int count = num_of_iter;
+            int count = 0;
             if(profileCode) callProfiler("algo");
 
-            while(count) {
+            while(count < num_of_iter) {
                 algo_loop();
-                count--;
+                count++;
             }
 
             if(profileCode) profileResults.insert(std::pair<std::string, double>("algo", callProfiler("algo")));
@@ -539,9 +540,9 @@ std::string cfEngine::generateDetailedOutputString() {
     if(type == "line") {
         filename = "output/"+input_filename+"-"+type+"("+ std::to_string(max_line_length) +")-iter"+ std::to_string(num_of_iter)+"-"+kmeansstr+"df="+dist_measure+".bmp";
     } else if(type == "circle") {
-        filename = "output/"+input_filename+"-"+type+"("+ std::to_string(max_radius) +")"+ circlefill + " iter" + std::to_string(num_of_iter)+"-"+kmeansstr+"df="+dist_measure+".bmp";
+        filename = "output/"+input_filename+"-"+type+"("+ std::to_string(max_radius) +")"+ circlefill + "-iter" + std::to_string(num_of_iter)+"-"+kmeansstr+"df="+dist_measure+".bmp";
     } else {
-        filename = "output/"+input_filename+"-"+type+"(" + std::to_string(lineToCircleRatio)+ ","+ std::to_string(outlineToFillRatio)+ ")"+"-line("+ std::to_string(max_line_length) +")"+".circle("+ std::to_string(max_radius) +")"+ circlefill +" iter"+  std::to_string(num_of_iter)+"-"+kmeansstr+"df="+dist_measure+".bmp";
+        filename = "output/"+input_filename+"-"+type+"(" + std::to_string(lineToCircleRatio)+ ","+ std::to_string(outlineToFillRatio)+ ")"+"-line("+ std::to_string(max_line_length) +")"+".circle("+ std::to_string(max_radius) +")"+ circlefill +"iter"+  std::to_string(num_of_iter)+"-"+kmeansstr+"df="+dist_measure+".bmp";
     }
     return filename;
 }
@@ -633,12 +634,12 @@ void cfEngine::constructCircle(int x0, int y0, int radius, sf::Color color) {
     for(const auto &i: pixBuffer) {
         set.insert(i);
     }
-    int before = pixBuffer.size();
+
     pixBuffer.clear();
         
     for(const auto &i: set) {
         pixBuffer.push_back(i);
-    } 
+    }
 }
 
 long double cfEngine::measureAverageDistance_AABB(int id, sf::Rect<int> area) {

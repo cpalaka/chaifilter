@@ -133,7 +133,7 @@ private:
     std::map<std::string, double> profileResults;               // Profile results stored in map (string -> time taken)
     bool profileCode;                                           // 1: profile; 0: don't
 
-    //General aLgo properties
+    //General algo properties
     GraphicType graphicType;                                    // Chosen graphictype
     distFunc df;                                                // Distance function to use
     distance_func dfn;                                          // Function pointer to distance function in util.h

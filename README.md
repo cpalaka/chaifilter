@@ -1,6 +1,6 @@
 # ChaiFilter
 
-![input LETSGO](/output/ball-line(50)-iter10000000-k++=20df=euclid.bmp)
+![input LETSGO](/output/ball-mixed(90,80)-line(100).circle(40) iter10000000-df=euclid.bmp)
 
 ## Explanation
 This program is my implementation of this simple image processing algorithm:
@@ -67,12 +67,14 @@ To execute:
     Used to control level of mixing between lines and circles and circle outlines and filled circles.
 
     ##### **lineToCircle**:*integer*
-        - number between 0-100 controlling amount of lines.
+        Number between 0-100 controlling amount of lines.
+
         >setting this to 100 will produce only lines
 
     ##### **outlineToFill**:*integer*
-        - number between 0-100 controlling amount of outlined circles.
-        > lower yields more filled
+        Number between 0-100 controlling amount of outlined circles.
+
+        >lower value yields more filled circles
 
 * **`-f`**
 
@@ -138,6 +140,8 @@ You may have noticed that the output bmp file names detail the specific paramete
 * line(n) - lines with max line length of n
 * circle(n) - circles with max radius of n
 * mixed(x,y) - mix of lines and circles with line to circle ratio set to x and outlined circle to filled circle ratio set to y
+* k=n - kmeans clustering algorithm used with n clusters
+* k++=n - kmeans clustering used with kmeans++ for initialization step and n clusters
 
 ## Examples
 
@@ -153,6 +157,12 @@ You may have noticed that the output bmp file names detail the specific paramete
 
 ![seashore](output/seashore-line(50)-iter10000000-df=euclid.bmp)
 
+![seashore](output/seashore-mixed(80,90)-line(200).circle(40)-fillediter1000000-df=euclid.bmp)
+
+![haskgirl](output/pic-circle(20)-filled iter100000-df=euclid.bmp)
+
+![haskgirl](output/pic-mixed(40,60)-line(200).circle(10)-fillediter1000000-df=euclid.bmp)
+
 ![Output image of me in Chicago with friends](output/chictrip-line(50)-iter10000000-df=euclid.bmp)
 
-## THIS IS A WIP AND UNFINISHED
+# Tentatively Complete
