@@ -146,9 +146,9 @@ You may have noticed that the output bmp file names detail the specific paramete
 
 ## Examples
 
-![kitty no kmeans](output/kitty-line(60)-iter2000000-df=euclid.bmp)
+![kitty only lines](output/kitty-line(60)-iter2000000-df=euclid.bmp)
 
-![kitty with kmeans](output/kitty-line(50)-iter10000000-k=50df=euclid.bmp)
+![kitty mixed](output/kitty-mixed(90,50)-line(75).circle(50)iter2000000-df=euclid.bmp)
 
 ![transcend-wallpaper](output/transcend-line(50)-iter10000000-k=50df=euclid.bmp)
 
