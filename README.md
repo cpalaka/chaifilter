@@ -160,8 +160,6 @@ You may have noticed that the output bmp file names detail the specific paramete
 
 ![seashore](output/seashore-mixed(80,90)-line(200).circle(40)-fillediter1000000-df=euclid.bmp)
 
-![haskgirl](output/pic-circle(20)-filled iter100000-df=euclid.bmp)
-
 ![haskgirl](output/pic-mixed(40,60)-line(200).circle(10)-fillediter1000000-df=euclid.bmp)
 
 ![Output image of me in Chicago with friends](output/chictrip-line(50)-iter10000000-df=euclid.bmp)
