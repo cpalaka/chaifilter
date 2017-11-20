@@ -1,6 +1,7 @@
 # ChaiFilter
 
-![input LETSGO](/output/ball-mixed(90,80)-line(100).circle(40) iter10000000-df=euclid.bmp)
+![circle-mixed](/output/ball-mixed(90,80)-line(100).circle(20)-fillediter1000000-df=euclid.bmp)
+![circle-mixed](/output/ball-mixed(50,5)-line(30).circle(10)-fillediter2000000-df=euclid.bmp)
 
 ## Explanation
 This program is my implementation of this simple image processing algorithm:

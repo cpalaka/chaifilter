@@ -7,7 +7,8 @@
  *      - check out readme for further information
  * 
  */
- 
+ //TODO: implement command line option to first do one graphic type then an other, after a number of iterations, etc - more control over algo
+
 #include "cfEngine.h"
 #include "PixelArray.h"
 #include "Util.h"
