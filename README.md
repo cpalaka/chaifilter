@@ -127,11 +127,11 @@ Flag for showing time taken by different functions in cfEngine. Simple profiler.
 
 ## Example Usage
 
-##### `./chanfilter inputpic.jpg -t lines 50 -i 1000000 -v`
+##### `./chaifilter inputpic.jpg -t lines 50 -i 1000000 -v`
 
-##### `./chanfilter inputpic.jpg -kv 25 -w`
+##### `./chaifilter inputpic.jpg -kv 25 -w`
 
-##### `./chanfilter inputpic.jpg -t rect 70 70 -i 1000000 -k 15 -w -d taxi`
+##### `./chaifilter inputpic.jpg -t rect 70 70 -i 1000000 -k 15 -w -d taxi`
 
 ## How to read output files
 
